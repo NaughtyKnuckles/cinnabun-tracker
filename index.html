@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#c8650a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="CinnaBun"/>
+<title>CinnaBun Tracker</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0500;--bg2:#1a0a00;--bg3:#2a1200;--surface:#1f0e00;--card:#2c1500;
+  --border:#3d1f00;--amber:#c8650a;--amber2:#e07820;--cream:#fff0d6;
+  --text:#f5ddb0;--muted:#9a7040;--pink:#c45a7a;--pink-bg:#2a0a15;--green:#4a9a4a;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Playfair Display',serif;--font-body:'DM Sans',sans-serif;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;height:100%}
+body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--bg2)}
+
+/* Header */
+.header{background:linear-gradient(160deg,#3d1800,#1a0a00);padding:18px 20px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{font-size:28px;line-height:1}
+.brand-text h1{font-family:var(--font-display);font-size:20px;color:var(--cream);font-weight:900;line-height:1}
+.brand-text p{font-size:11px;color:var(--muted);margin-top:1px}
+.date-badge{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;text-align:right}
+.date-badge .day{font-family:var(--font-display);font-size:22px;color:var(--amber);line-height:1;font-weight:700}
+.date-badge .month{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+/* Sync status pill */
+.sync-pill{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;letter-spacing:.04em;padding:4px 9px;border-radius:20px;margin-top:8px;width:fit-content}
+.sync-pill.synced{background:rgba(74,154,74,.15);color:var(--green);border:1px solid rgba(74,154,74,.3)}
+.sync-pill.syncing{background:rgba(200,101,10,.15);color:var(--amber);border:1px solid rgba(200,101,10,.3)}
+.sync-pill.offline{background:rgba(255,96,96,.1);color:#ff9060;border:1px solid rgba(255,96,96,.2)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.sync-dot.pulse{animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Tabs */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--bg);border-bottom:1px solid var(--border)}
+.tab{padding:12px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:color .15s;border-bottom:2px solid transparent;user-select:none}
+.tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+.tab-icon{font-size:18px;display:block;margin-bottom:2px}
+
+/* Pages */
+.page{display:none;padding:16px;padding-bottom:calc(20px + var(--safe-bottom));flex-direction:column;gap:14px}
+.page.active{display:flex}
+
+/* Cards */
+.card-title{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--amber);padding:0 2px 4px;text-transform:uppercase;letter-spacing:.06em}
+
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat.revenue::before{background:linear-gradient(90deg,var(--amber),var(--amber2))}
+.stat.profit::before{background:linear-gradient(90deg,var(--green),#7acc7a)}
+.stat.pieces::before{background:linear-gradient(90deg,#5a8fc8,#8ab4e8)}
+.stat.best::before{background:linear-gradient(90deg,var(--pink),#e07aa0)}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.stat-value{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--cream);margin-top:4px;line-height:1}
+.stat-value.small{font-size:16px}
+.stat.best .stat-value{font-size:15px;color:var(--pink)}
+
+/* Form */
+.form-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:12px}
+.form-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.flavor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.flavor-btn{padding:13px 8px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.flavor-btn .price-tag{font-size:10px;color:var(--muted);font-weight:400}
+.flavor-btn.selected{border-color:var(--amber);background:rgba(200,101,10,.18);color:var(--cream)}
+.flavor-btn.selected-2{border-color:var(--pink);background:rgba(196,90,122,.18);color:var(--cream)}
+.pieces-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.piece-btn{padding:14px 4px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-family:var(--font-display);font-size:18px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
+.piece-btn.selected{border-color:var(--amber);background:rgba(200,101,10,.2);color:var(--amber)}
+.mixed-hint{background:var(--pink-bg);border:1px solid var(--pink);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--pink);display:none;align-items:center;gap:8px}
+.mixed-hint.show{display:flex}
+.order-preview{background:var(--bg3);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:12px;font-size:13px;color:var(--muted);min-height:52px;display:flex;align-items:center;justify-content:space-between}
+.preview-text{color:var(--text)}
+.preview-price{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--amber)}
+.add-btn{background:linear-gradient(135deg,var(--amber),var(--amber2));color:#1a0a00;font-family:var(--font-display);font-size:18px;font-weight:900;border:none;border-radius:var(--radius);padding:18px;cursor:pointer;letter-spacing:.04em;transition:opacity .15s;width:100%}
+.add-btn:active{opacity:.8}
+.add-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Orders list */
+.orders-empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.orders-empty .empty-icon{font-size:48px;margin-bottom:8px}
+.orders-empty p{font-size:13px}
+.order-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px}
+.order-item.mixed-item{border-color:rgba(196,90,122,.4)}
+.order-dot{width:10px;height:10px;border-radius:50%;background:var(--amber);flex-shrink:0}
+.order-item.mixed-item .order-dot{background:var(--pink)}
+.order-info{flex:1;min-width:0}
+.order-name{font-weight:600;font-size:14px;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.order-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.order-prices{text-align:right;flex-shrink:0}
+.order-revenue{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--amber)}
+.order-profit{font-size:11px;color:var(--green);margin-top:1px}
+.del-btn{background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.2);border-radius:6px;color:#ff6060;font-size:16px;padding:6px 10px;cursor:pointer;flex-shrink:0}
+
+/* Daily list */
+.daily-list-output{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'DM Sans',monospace;font-size:14px;color:var(--cream);white-space:pre-wrap;line-height:1.9;min-height:120px}
+.copy-btn{background:var(--bg3);border:1px solid var(--amber);border-radius:var(--radius);color:var(--amber);font-family:var(--font-body);font-size:15px;font-weight:600;padding:16px;cursor:pointer;width:100%;transition:background .15s}
+.copy-btn:active{background:rgba(200,101,10,.2)}
+.copy-success{color:var(--green);border-color:var(--green)}
+
+/* Loading overlay */
+.loading{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999}
+.loading.hidden{display:none}
+.loading-icon{font-size:52px}
+.loading-text{font-family:var(--font-display);font-size:18px;color:var(--cream)}
+.loading-sub{font-size:12px;color:var(--muted)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast{position:fixed;bottom:calc(24px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:#1a0a00;border:1px solid var(--amber);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--cream);font-weight:500;opacity:0;transition:all .25s;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,.5)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div class="loading" id="loading">
+  <div class="loading-icon">🍩</div>
+  <div class="loading-text">CinnaBun Tracker</div>
+  <div class="spinner"></div>
+  <div class="loading-sub" id="loading-sub">Connecting to cloud…</div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-icon">🍩</div>
+      <div class="brand-text">
+        <h1>CinnaBun</h1>
+        <p>Order Tracker</p>
+      </div>
+    </div>
+    <div class="date-badge">
+      <div class="day" id="hdr-day">--</div>
+      <div class="month" id="hdr-month">---</div>
+    </div>
+  </div>
+  <div class="sync-pill syncing" id="sync-pill">
+    <div class="sync-dot pulse"></div>
+    <span id="sync-text">Connecting…</span>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('add')"><span class="tab-icon">➕</span>Add Order</div>
+  <div class="tab" onclick="switchTab('orders')"><span class="tab-icon">📋</span>Orders</div>
+  <div class="tab" onclick="switchTab('daily')"><span class="tab-icon">📤</span>Share List</div>
+</div>
+
+<!-- PAGE: Add Order -->
+<div class="page active" id="page-add">
+  <div class="summary-grid">
+    <div class="stat revenue"><div class="stat-label">Revenue</div><div class="stat-value" id="sum-revenue">₱0</div></div>
+    <div class="stat profit"><div class="stat-label">Profit</div><div class="stat-value" id="sum-profit">₱0</div></div>
+    <div class="stat pieces"><div class="stat-label">Pieces Sold</div><div class="stat-value" id="sum-pieces">0</div></div>
+    <div class="stat best"><div class="stat-label">Best Seller</div><div class="stat-value small" id="sum-best">—</div></div>
+  </div>
+  <div class="form-section">
+    <div class="form-title">New Order</div>
+    <div class="field">
+      <label>Flavor 1 <span style="color:var(--amber)">*</span></label>
+      <div class="flavor-grid" id="flavor1-grid"></div>
+    </div>
+    <div class="field">
+      <label>Pieces <span style="color:var(--amber)">*</span></label>
+      <div class="pieces-grid" id="pieces-grid"></div>
+    </div>
+    <div class="mixed-hint" id="mixed-hint">
+      <span>🎨</span><span>2 pcs selected — pick Flavor 2 for a mixed combo!</span>
+    </div>
+    <div class="field" id="flavor2-field" style="display:none">
+      <label>Flavor 2 <span style="color:var(--pink)">(mixed combo)</span></label>
+      <div class="flavor-grid" id="flavor2-grid"></div>
+    </div>
+    <div class="order-preview" id="order-preview">
+      <span>Select flavor &amp; pieces above…</span>
+    </div>
+    <button class="add-btn" id="add-btn" onclick="addOrder()" disabled>Add Order</button>
+  </div>
+</div>
+
+<!-- PAGE: Orders -->
+<div class="page" id="page-orders">
+  <div class="card-title">Today's Orders</div>
+  <div id="orders-list"></div>
+</div>
+
+<!-- PAGE: Daily List -->
+<div class="page" id="page-daily">
+  <div class="card-title">Ready-to-Share List</div>
+  <div class="daily-list-output" id="daily-output">No orders yet today.</div>
+  <button class="copy-btn" id="copy-btn" onclick="copyList()">📋 Copy List</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK (modular, CDN) -->
+<script type="module">
+import { initializeApp }              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, deleteDoc, doc,
+         onSnapshot, query, orderBy, enableIndexedDbPersistence }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── Firebase config ────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyAEtm1Jq2WlxLJDe97w0hX20JDFTuhpQdY",
+  authDomain:        "cinnabun-tracker.firebaseapp.com",
+  projectId:         "cinnabun-tracker",
+  storageBucket:     "cinnabun-tracker.firebasestorage.app",
+  messagingSenderId: "403071674919",
+  appId:             "1:403071674919:web:3612d2be8e68f425a3bc02"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// Enable offline persistence (works even without internet)
+enableIndexedDbPersistence(db).catch(() => {});
+
+// ── App data ───────────────────────────────────────────────────────────────────
+const FLAVORS = [
+  { name:'Original',  price:75, cost:60 },
+  { name:'Almond',    price:90, cost:75 },
+  { name:'Oreo',      price:90, cost:75 },
+  { name:'Blueberry', price:90, cost:75 },
+];
+const PIECES = [1,2,3,4,5,6,8,10,12];
+
+let orders     = [];
+let selFlavor1 = null;
+let selFlavor2 = null;
+let selPieces  = null;
+let unsubscribe = null;
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function todayOrders() { return orders.filter(o => o.date === todayKey()); }
+
+function setSyncStatus(state, text) {
+  const pill = document.getElementById('sync-pill');
+  const dot  = pill.querySelector('.sync-dot');
+  const span = document.getElementById('sync-text');
+  pill.className = `sync-pill ${state}`;
+  dot.className  = `sync-dot${state==='syncing' ? ' pulse' : ''}`;
+  span.textContent = text;
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+function init() {
+  updateDateHeader();
+  buildFlavorGrids();
+  buildPiecesGrid();
+  startFirestoreListener();
+
+  if ('serviceWorker' in navigator)
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+function updateDateHeader() {
+  const d = new Date();
+  document.getElementById('hdr-day').textContent   = d.getDate();
+  document.getElementById('hdr-month').textContent =
+    d.toLocaleDateString('en-PH', { month:'short', year:'numeric' });
+}
+
+// ── Firestore real-time listener ───────────────────────────────────────────────
+function startFirestoreListener() {
+  const q = query(collection(db, 'orders'), orderBy('createdAt', 'asc'));
+
+  unsubscribe = onSnapshot(q,
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      // Detect if data came from cache (offline) or server
+      const fromServer = !snapshot.metadata.fromCache;
+      setSyncStatus(
+        fromServer ? 'synced' : 'offline',
+        fromServer ? '☁️ Synced' : '📴 Offline (saved locally)'
+      );
+
+      orders = snapshot.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+      renderAll();
+      document.getElementById('loading').classList.add('hidden');
+    },
+    (error) => {
+      console.error(error);
+      setSyncStatus('offline', '⚠️ Connection error');
+      document.getElementById('loading-sub').textContent = 'Could not connect — check internet.';
+      setTimeout(() => document.getElementById('loading').classList.add('hidden'), 2000);
+    }
+  );
+}
+
+// ── Build pickers ──────────────────────────────────────────────────────────────
+function buildFlavorGrids() {
+  ['flavor1-grid','flavor2-grid'].forEach((id, isF2) => {
+    const grid = document.getElementById(id);
+    FLAVORS.forEach(f => {
+      const btn = document.createElement('button');
+      btn.className = 'flavor-btn';
+      btn.innerHTML = `${f.name}<span class="price-tag">₱${f.price}</span>`;
+      btn.onclick = () => selectFlavor(f.name, !!isF2);
+      btn.dataset.flavor = f.name;
+      btn.dataset.which  = isF2 ? '2' : '1';
+      grid.appendChild(btn);
+    });
+  });
+}
+
+function buildPiecesGrid() {
+  const grid = document.getElementById('pieces-grid');
+  PIECES.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'piece-btn';
+    btn.textContent = p;
+    btn.onclick = () => selectPieces(p);
+    btn.dataset.pieces = p;
+    grid.appendChild(btn);
+  });
+}
+
+// ── Selection ──────────────────────────────────────────────────────────────────
+function selectFlavor(name, isF2) {
+  if (isF2) { selFlavor2 = selFlavor2 === name ? null : name; }
+  else { selFlavor1 = selFlavor1 === name ? null : name; selFlavor2 = null; }
+  updateFlavorUI(); updatePreview();
+}
+
+function selectPieces(p) {
+  selPieces = selPieces === p ? null : p;
+  if (selPieces !== 2) selFlavor2 = null;
+  updateFlavorUI(); updatePreview();
+}
+
+function updateFlavorUI() {
+  document.querySelectorAll('[data-which="1"]').forEach(b =>
+    b.className = 'flavor-btn' + (b.dataset.flavor === selFlavor1 ? ' selected' : ''));
+  document.querySelectorAll('[data-which="2"]').forEach(b =>
+    b.className = 'flavor-btn' + (b.dataset.flavor === selFlavor2 ? ' selected-2' : ''));
+  document.querySelectorAll('[data-pieces]').forEach(b =>
+    b.className = 'piece-btn' + (parseInt(b.dataset.pieces) === selPieces ? ' selected' : ''));
+  const show2 = selPieces === 2 && selFlavor1;
+  document.getElementById('mixed-hint').className   = 'mixed-hint' + (show2 ? ' show' : '');
+  document.getElementById('flavor2-field').style.display = show2 ? 'block' : 'none';
+}
+
+function updatePreview() {
+  const preview = document.getElementById('order-preview');
+  const addBtn  = document.getElementById('add-btn');
+  if (!selFlavor1 || !selPieces) {
+    preview.innerHTML = '<span>Select flavor &amp; pieces above…</span>';
+    addBtn.disabled = true; return;
+  }
+  const isMixed = selPieces === 2 && selFlavor2;
+  const f1 = FLAVORS.find(f => f.name === selFlavor1);
+  const f2 = isMixed ? FLAVORS.find(f => f.name === selFlavor2) : null;
+  const revenue = isMixed ? f1.price + f2.price : selPieces * f1.price;
+  const profit  = isMixed
+    ? (f1.price-f1.cost) + (f2.price-f2.cost)
+    : selPieces * (f1.price-f1.cost);
+  const label = isMixed
+    ? `${selFlavor1} + ${selFlavor2} (2pc mixed)`
+    : `${selFlavor1} × ${selPieces}pc`;
+  preview.innerHTML = `
+    <span class="preview-text">${label}</span>
+    <span class="preview-price">₱${revenue}
+      <span style="font-size:11px;color:var(--green);font-family:var(--font-body);font-weight:400;margin-left:4px">+₱${profit}</span>
+    </span>`;
+  addBtn.disabled = false;
+}
+
+// ── Add order → Firestore ──────────────────────────────────────────────────────
+window.addOrder = async function() {
+  if (!selFlavor1 || !selPieces) return;
+  const btn = document.getElementById('add-btn');
+  btn.disabled = true;
+
+  const isMixed = selPieces === 2 && selFlavor2;
+  const f1 = FLAVORS.find(f => f.name === selFlavor1);
+  const f2 = isMixed ? FLAVORS.find(f => f.name === selFlavor2) : null;
+  const revenue = isMixed ? f1.price + f2.price : selPieces * f1.price;
+  const profit  = isMixed
+    ? (f1.price-f1.cost) + (f2.price-f2.cost)
+    : selPieces * (f1.price-f1.cost);
+
+  setSyncStatus('syncing', '⏫ Saving…');
+
+  try {
+    await addDoc(collection(db, 'orders'), {
+      date:      todayKey(),
+      time:      new Date().toLocaleTimeString('en-PH', { hour:'2-digit', minute:'2-digit' }),
+      createdAt: Date.now(),
+      flavor1:   selFlavor1,
+      flavor2:   isMixed ? selFlavor2 : null,
+      pieces:    selPieces,
+      mixed:     isMixed,
+      revenue,
+      profit,
+    });
+    selFlavor1 = selFlavor2 = selPieces = null;
+    updateFlavorUI(); updatePreview();
+    showToast('Order saved to cloud! 🍩');
+  } catch(e) {
+    showToast('Saved offline — will sync when connected');
+    selFlavor1 = selFlavor2 = selPieces = null;
+    updateFlavorUI(); updatePreview();
+  }
+  btn.disabled = false;
+};
+
+// ── Delete → Firestore ─────────────────────────────────────────────────────────
+window.deleteOrder = async function(firestoreId) {
+  try {
+    await deleteDoc(doc(db, 'orders', firestoreId));
+    showToast('Order removed');
+  } catch(e) { showToast('Error removing order'); }
+};
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderSummary(); renderOrdersList(); renderDailyList();
+}
+
+function renderSummary() {
+  const tod  = todayOrders();
+  const rev  = tod.reduce((s,o) => s+o.revenue, 0);
+  const prof = tod.reduce((s,o) => s+o.profit,  0);
+  const pcs  = tod.reduce((s,o) => s+o.pieces,  0);
+  const tally = {};
+  tod.forEach(o => {
+    tally[o.flavor1] = (tally[o.flavor1]||0) + o.pieces;
+    if (o.flavor2) tally[o.flavor2] = (tally[o.flavor2]||0) + 1;
+  });
+  const best = Object.keys(tally).length
+    ? Object.keys(tally).reduce((a,b) => tally[a]>tally[b]?a:b) : '—';
+  document.getElementById('sum-revenue').textContent = `₱${rev}`;
+  document.getElementById('sum-profit').textContent  = `₱${prof}`;
+  document.getElementById('sum-pieces').textContent  = pcs;
+  document.getElementById('sum-best').textContent    = best;
+}
+
+function renderOrdersList() {
+  const list = document.getElementById('orders-list');
+  const tod  = todayOrders().slice().reverse();
+  if (!tod.length) {
+    list.innerHTML = `<div class="orders-empty"><div class="empty-icon">🍩</div><p>No orders yet today.<br>Add your first one!</p></div>`;
+    return;
+  }
+  list.innerHTML = tod.map(o => {
+    const name = o.mixed ? `${o.flavor1} + ${o.flavor2}` : o.flavor1;
+    const meta = o.mixed ? `2pc mixed combo · ${o.time}` : `${o.pieces}pc · ${o.time}`;
+    return `<div class="order-item${o.mixed?' mixed-item':''}">
+      <div class="order-dot"></div>
+      <div class="order-info">
+        <div class="order-name">${name}</div>
+        <div class="order-meta">${meta}</div>
+      </div>
+      <div class="order-prices">
+        <div class="order-revenue">₱${o.revenue}</div>
+        <div class="order-profit">+₱${o.profit} profit</div>
+      </div>
+      <button class="del-btn" onclick="deleteOrder('${o.firestoreId}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderDailyList() {
+  const tod = todayOrders();
+  const out = document.getElementById('daily-output');
+  if (!tod.length) { out.textContent = 'No orders yet today.'; return; }
+  const lines = [];
+  const dateStr = new Date().toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric'});
+  lines.push(`🍩 CinnaBun Orders — ${dateStr}`, '');
+  const byPc = {};
+  tod.forEach(o => {
+    if (!byPc[o.pieces]) byPc[o.pieces] = { single:{}, mixed:{} };
+    if (o.mixed) {
+      const pair = [o.flavor1,o.flavor2].sort().join(' + ');
+      byPc[o.pieces].mixed[pair] = (byPc[o.pieces].mixed[pair]||0)+1;
+    } else {
+      byPc[o.pieces].single[o.flavor1] = (byPc[o.pieces].single[o.flavor1]||0)+1;
+    }
+  });
+  Object.keys(byPc).sort((a,b)=>a-b).forEach(pc => {
+    lines.push(`${pc} pc:`);
+    Object.keys(byPc[pc].single).forEach(fl => lines.push(`  ${fl} - ${byPc[pc].single[fl]}`));
+    Object.keys(byPc[pc].mixed).forEach(pair => lines.push(`  ${pair} - ${byPc[pc].mixed[pair]} combo`));
+    lines.push('');
+  });
+  const rev  = tod.reduce((s,o)=>s+o.revenue,0);
+  const prof = tod.reduce((s,o)=>s+o.profit,0);
+  const pcs  = tod.reduce((s,o)=>s+o.pieces,0);
+  lines.push(`Total: ${pcs} pcs | Revenue: ₱${rev} | Profit: ₱${prof}`);
+  out.textContent = lines.join('\n');
+}
+
+// ── Tab switch ─────────────────────────────────────────────────────────────────
+window.switchTab = function(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) =>
+    t.classList.toggle('active',['add','orders','daily'][i]===tab));
+  document.querySelectorAll('.page').forEach(p =>
+    p.classList.toggle('active', p.id===`page-${tab}`));
+};
+
+// ── Copy list ──────────────────────────────────────────────────────────────────
+window.copyList = function() {
+  const text = document.getElementById('daily-output').textContent;
+  const btn  = document.getElementById('copy-btn');
+  const reset = () => { btn.textContent='📋 Copy List'; btn.classList.remove('copy-success'); };
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent='✅ Copied!'; btn.classList.add('copy-success');
+    setTimeout(reset, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value=text; ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('Copied!');
+  });
+};
+
+init();
+</script>
+</body>
+</html>
