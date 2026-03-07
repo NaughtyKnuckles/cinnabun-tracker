@@ -45,7 +45,7 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 .sync-dot.pulse{animation:pulse 1.2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* Tabs — 4 tabs now */
+/* Tabs */
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);background:var(--bg);border-bottom:1px solid var(--border)}
 .tab{padding:10px 2px;text-align:center;font-size:9px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.03em;text-transform:uppercase;transition:color .15s;border-bottom:2px solid transparent;user-select:none}
 .tab.active{color:var(--amber);border-bottom-color:var(--amber)}
@@ -56,7 +56,7 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 .page.active{display:flex}
 .card-title{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--amber);padding:0 2px 4px;text-transform:uppercase;letter-spacing:.06em}
 
-/* Summary grid */
+/* Summary */
 .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;position:relative;overflow:hidden}
 .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
@@ -76,30 +76,75 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 .form-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--cream)}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* Name input */
 .name-input{background:var(--bg3);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--cream);font-family:var(--font-body);font-size:15px;font-weight:500;padding:12px;width:100%;outline:none;transition:border-color .15s}
 .name-input::placeholder{color:var(--muted)}
 .name-input:focus{border-color:var(--amber)}
+
+/* Flavor grid */
 .flavor-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .flavor-btn{padding:11px 6px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
 .flavor-btn .price-tag{font-size:9px;color:var(--muted);font-weight:400}
 .flavor-btn.selected{border-color:var(--amber);background:rgba(200,101,10,.18);color:var(--cream)}
 .flavor-btn.selected-2{border-color:var(--pink);background:rgba(196,90,122,.18);color:var(--cream)}
-.pieces-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.piece-btn{padding:12px 4px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-family:var(--font-display);font-size:17px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
-.piece-btn.selected{border-color:var(--amber);background:rgba(200,101,10,.2);color:var(--amber)}
+
+/* ── TUB SELECTOR ── */
+.tub-selector{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.tub-option{
+  background:var(--bg3);border:2px solid var(--border);border-radius:var(--radius);
+  padding:10px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s;
+}
+.tub-option.active-tub{border-color:var(--amber);background:rgba(200,101,10,.08)}
+
+/* tub type button (1pc / 2pc) */
+.tub-type-btn{
+  width:100%;padding:10px 4px;border:none;border-radius:var(--radius-sm);
+  font-family:var(--font-display);font-size:20px;font-weight:900;cursor:pointer;
+  transition:all .15s;text-align:center;line-height:1.1;
+}
+.tub-type-btn.t1{background:rgba(200,101,10,.12);color:var(--amber)}
+.tub-type-btn.t1.sel{background:var(--amber);color:#1a0a00}
+.tub-type-btn.t2{background:rgba(196,90,122,.12);color:var(--pink)}
+.tub-type-btn.t2.sel{background:var(--pink);color:#fff}
+.tub-type-btn span{display:block;font-family:var(--font-body);font-size:9px;font-weight:600;opacity:.7;margin-top:1px}
+
+/* quantity stepper */
+.qty-row{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.qty-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.qty-stepper{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.qty-btn{
+  background:var(--bg2);color:var(--text);border:none;font-size:18px;font-weight:700;
+  width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .1s;user-select:none;
+}
+.qty-btn:active{background:rgba(200,101,10,.2)}
+.qty-btn:disabled{opacity:.25;cursor:not-allowed}
+.qty-val{
+  font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--cream);
+  min-width:32px;text-align:center;background:var(--bg3);height:36px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Mixed hint */
 .mixed-hint{background:var(--pink-bg);border:1px solid var(--pink);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:var(--pink);display:none;align-items:center;gap:6px}
 .mixed-hint.show{display:flex}
-.order-preview{background:var(--bg3);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:10px;font-size:12px;color:var(--muted);min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.preview-text{color:var(--text);flex:1;min-width:0}
-.preview-price{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--amber);flex-shrink:0}
+
+/* Preview */
+.order-preview{background:var(--bg3);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:10px;font-size:12px;color:var(--muted);min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.preview-text{color:var(--text);flex:1;min-width:0;line-height:1.4}
+.preview-price{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--amber);flex-shrink:0;text-align:right}
+.preview-breakdown{font-size:9px;color:var(--muted);margin-top:2px}
+
+/* Add button */
 .add-btn{background:linear-gradient(135deg,var(--amber),var(--amber2));color:#1a0a00;font-family:var(--font-display);font-size:17px;font-weight:900;border:none;border-radius:var(--radius);padding:16px;cursor:pointer;transition:opacity .15s;width:100%}
 .add-btn:active{opacity:.8}
 .add-btn:disabled{opacity:.35;cursor:not-allowed}
 
-/* Save Day button */
+/* Save Day */
 .save-day-btn{background:linear-gradient(135deg,#2a4a2a,#1a3a1a);color:var(--green);font-family:var(--font-body);font-size:13px;font-weight:700;border:1px solid rgba(74,154,74,.4);border-radius:var(--radius);padding:14px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
 .save-day-btn:active{opacity:.8}
-.save-day-btn.saved{background:linear-gradient(135deg,#1a3a1a,#0a2a0a);color:rgba(74,154,74,.5);cursor:not-allowed;border-color:rgba(74,154,74,.2)}
 
 /* Orders list */
 .orders-empty{text-align:center;padding:30px 20px;color:var(--muted)}
@@ -139,14 +184,12 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 .copy-btn:active{background:rgba(200,101,10,.2)}
 .copy-success{color:var(--green);border-color:var(--green)}
 
-/* ── ANALYTICS PAGE ── */
+/* Analytics */
 .analytics-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .month-nav{display:flex;align-items:center;gap:8px}
 .month-nav-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:18px;padding:6px 12px;cursor:pointer}
 .month-nav-btn:active{opacity:.7}
 .month-label{font-family:var(--font-display);font-size:15px;color:var(--cream);font-weight:700;min-width:110px;text-align:center}
-
-/* Monthly summary stats */
 .month-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mstat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;position:relative;overflow:hidden}
 .mstat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
@@ -156,26 +199,20 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 .mstat.pcs::before{background:linear-gradient(90deg,var(--purple),#c39bd3)}
 .mstat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 .mstat-value{font-family:var(--font-display);font-size:19px;font-weight:900;color:var(--cream);margin-top:3px;line-height:1}
-
-/* Bar chart */
 .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
 .chart-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
 .bar-chart{display:flex;align-items:flex-end;gap:5px;height:80px}
 .bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px}
-.bar{width:100%;border-radius:4px 4px 0 0;min-height:3px;transition:height .3s}
+.bar{width:100%;border-radius:4px 4px 0 0;min-height:3px}
 .bar-label{font-size:8px;color:var(--muted);text-align:center;white-space:nowrap}
 .bar-val{font-size:8px;color:var(--text);font-weight:600}
-
-/* Piece count breakdown */
 .piece-breakdown{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:8px}
 .piece-row{display:flex;align-items:center;gap:8px}
 .piece-tag{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--amber);min-width:36px}
 .piece-bar-wrap{flex:1;background:var(--bg3);border-radius:4px;height:12px;overflow:hidden}
-.piece-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--amber),var(--amber2));transition:width .4s}
+.piece-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--amber),var(--amber2))}
 .piece-count{font-size:11px;color:var(--text);font-weight:600;min-width:28px;text-align:right}
 .piece-orders-count{font-size:9px;color:var(--muted);min-width:52px;text-align:right}
-
-/* Day history list */
 .day-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
 .day-card-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none}
 .day-card-header:active{background:rgba(255,255,255,.03)}
@@ -190,8 +227,6 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 .day-detail-row{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)}
 .day-detail-row:last-child{border-bottom:none}
 .day-detail-row span:last-child{color:var(--text);font-weight:600}
-
-/* History empty */
 .hist-empty{text-align:center;padding:40px 20px;color:var(--muted)}
 .hist-empty .empty-icon{font-size:40px;margin-bottom:8px}
 
@@ -218,7 +253,7 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
   <div class="loading-icon">🍩</div>
   <div class="loading-text">CinnaBun Tracker</div>
   <div class="spinner"></div>
-  <div class="loading-sub" id="loading-sub">Connecting to cloud…</div>
+  <div class="loading-sub">Connecting to cloud…</div>
 </div>
 
 <!-- Header -->
@@ -239,7 +274,7 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
   </div>
 </div>
 
-<!-- Tabs: Add / Orders / Share / Analytics -->
+<!-- Tabs -->
 <div class="tabs">
   <div class="tab active" onclick="switchTab('add')"><span class="tab-icon">➕</span>Add</div>
   <div class="tab" onclick="switchTab('orders')"><span class="tab-icon">📋</span>Orders</div>
@@ -259,30 +294,76 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 
   <div class="form-section">
     <div class="form-title">New Order</div>
+
+    <!-- Customer -->
     <div class="field">
       <label>Customer Name <span style="color:var(--muted)">(optional)</span></label>
       <input class="name-input" id="customer-name" type="text" placeholder="e.g. Maria, Kuya Jun…" autocomplete="off" autocorrect="off" spellcheck="false"/>
     </div>
+
+    <!-- Flavor 1 -->
     <div class="field">
-      <label>Flavor 1 <span style="color:var(--amber)">*</span></label>
+      <label>Flavor <span style="color:var(--amber)">*</span></label>
       <div class="flavor-grid" id="flavor1-grid"></div>
     </div>
+
+    <!-- Tub type + quantity -->
     <div class="field">
-      <label>Pieces <span style="color:var(--amber)">*</span></label>
-      <div class="pieces-grid" id="pieces-grid"></div>
+      <label>Tub Size &amp; Quantity <span style="color:var(--amber)">*</span></label>
+      <div class="tub-selector">
+
+        <!-- 1pc tub -->
+        <div class="tub-option" id="tub-opt-1">
+          <button class="tub-type-btn t1" id="tub-btn-1" onclick="selectTubType(1)">
+            1pc<span>per tub</span>
+          </button>
+          <div class="qty-row">
+            <span class="qty-label">Tubs</span>
+            <div class="qty-stepper">
+              <button class="qty-btn" id="minus-1" onclick="changeQty(1,-1)" disabled>−</button>
+              <div class="qty-val" id="qty-1">1</div>
+              <button class="qty-btn" id="plus-1" onclick="changeQty(1,1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2pc tub -->
+        <div class="tub-option" id="tub-opt-2">
+          <button class="tub-type-btn t2" id="tub-btn-2" onclick="selectTubType(2)">
+            2pc<span>per tub</span>
+          </button>
+          <div class="qty-row">
+            <span class="qty-label">Tubs</span>
+            <div class="qty-stepper">
+              <button class="qty-btn" id="minus-2" onclick="changeQty(2,-1)" disabled>−</button>
+              <div class="qty-val" id="qty-2">1</div>
+              <button class="qty-btn" id="plus-2" onclick="changeQty(2,1)">+</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
+
+    <!-- Mixed hint (2pc only) -->
     <div class="mixed-hint" id="mixed-hint">
-      <span>🎨</span><span>2 pcs — pick Flavor 2 for a mixed combo!</span>
+      <span>🎨</span><span>2pc tub selected — pick Flavor 2 for a mixed combo!</span>
     </div>
+
+    <!-- Flavor 2 (mixed) -->
     <div class="field" id="flavor2-field" style="display:none">
-      <label>Flavor 2 <span style="color:var(--pink)">(mixed combo)</span></label>
+      <label>Flavor 2 <span style="color:var(--pink)">(mixed combo — 2pc tub)</span></label>
       <div class="flavor-grid" id="flavor2-grid"></div>
     </div>
-    <div class="order-preview" id="order-preview"><span>Select flavor &amp; pieces above…</span></div>
+
+    <!-- Preview -->
+    <div class="order-preview" id="order-preview">
+      <span>Select flavor &amp; tub size above…</span>
+    </div>
+
     <button class="add-btn" id="add-btn" onclick="addOrder()" disabled>Add Order</button>
   </div>
 
-  <!-- Save Day button -->
   <button class="save-day-btn" id="save-day-btn" onclick="saveDay()">
     <span>💾</span><span id="save-day-label">Save Today to History</span>
   </button>
@@ -304,7 +385,6 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 
 <!-- PAGE: Analytics -->
 <div class="page" id="page-analytics">
-  <!-- Month navigator -->
   <div class="analytics-header">
     <div class="month-nav">
       <button class="month-nav-btn" onclick="changeMonth(-1)">‹</button>
@@ -312,33 +392,23 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
       <button class="month-nav-btn" onclick="changeMonth(1)">›</button>
     </div>
   </div>
-
-  <!-- Monthly stats -->
   <div class="month-stats">
     <div class="mstat rev"><div class="mstat-label">Revenue</div><div class="mstat-value" id="m-revenue">₱0</div></div>
     <div class="mstat prof"><div class="mstat-label">Profit</div><div class="mstat-value" id="m-profit">₱0</div></div>
     <div class="mstat ord"><div class="mstat-label">Orders</div><div class="mstat-value" id="m-orders">0</div></div>
     <div class="mstat pcs"><div class="mstat-label">Pieces Sold</div><div class="mstat-value" id="m-pieces">0</div></div>
   </div>
-
-  <!-- Revenue bar chart -->
   <div class="chart-wrap">
     <div class="chart-title">📈 Daily Revenue — <span id="chart-month-label">—</span></div>
     <div class="bar-chart" id="revenue-chart"></div>
   </div>
-
-  <!-- Piece count breakdown -->
   <div class="piece-breakdown">
-    <div class="chart-title">📦 Orders by Piece Count</div>
-    <div id="piece-breakdown-rows">
-      <div style="color:var(--muted);font-size:12px;padding:8px 0">No data for this month.</div>
-    </div>
+    <div class="chart-title">📦 Orders by Tub Type</div>
+    <div id="piece-breakdown-rows"><div style="color:var(--muted);font-size:12px;padding:8px 0">No data for this month.</div></div>
   </div>
-
-  <!-- Daily breakdown list -->
   <div class="card-title">📅 Daily Breakdown</div>
   <div id="day-history-list">
-    <div class="hist-empty"><div class="empty-icon">📊</div><p>No saved days yet.<br>Use "Save Today to History" on the Add tab.</p></div>
+    <div class="hist-empty"><div class="empty-icon">📊</div><p>No saved days yet.<br>Use "Save Today to History".</p></div>
   </div>
 </div>
 
@@ -348,19 +418,19 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, addDoc, deleteDoc, doc,
          updateDoc, setDoc, onSnapshot, query, orderBy,
-         enableIndexedDbPersistence, getDocs, where }
+         enableIndexedDbPersistence }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const firebaseConfig = {
-  apiKey:            "AIzaSyAEtm1Jq2WlxLJDe97w0hX20JDFTuhpQdY",
-  authDomain:        "cinnabun-tracker.firebaseapp.com",
-  projectId:         "cinnabun-tracker",
-  storageBucket:     "cinnabun-tracker.firebasestorage.app",
-  messagingSenderId: "403071674919",
-  appId:             "1:403071674919:web:3612d2be8e68f425a3bc02"
+const firebaseConfig={
+  apiKey:"AIzaSyAEtm1Jq2WlxLJDe97w0hX20JDFTuhpQdY",
+  authDomain:"cinnabun-tracker.firebaseapp.com",
+  projectId:"cinnabun-tracker",
+  storageBucket:"cinnabun-tracker.firebasestorage.app",
+  messagingSenderId:"403071674919",
+  appId:"1:403071674919:web:3612d2be8e68f425a3bc02"
 };
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 enableIndexedDbPersistence(db).catch(()=>{});
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -370,21 +440,22 @@ const FLAVORS=[
   {name:'Oreo',     price:90,cost:75},
   {name:'Blueberry',price:90,cost:75},
 ];
-const PIECES=[1,2,3,4,5,6,8,10,12];
 const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 let orders=[], savedDays=[];
-let selFlavor1=null, selFlavor2=null, selPieces=null;
-let analyticsYear, analyticsMonth; // 0-indexed month
+let selFlavor1=null, selFlavor2=null;
+// Tub state: which tub type is selected (1 or 2), quantities for each
+let selTubType=null; // 1 or 2
+let qty1=1, qty2=1;
+let analyticsYear, analyticsMonth;
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── Utilities ──────────────────────────────────────────────────────────────────
 function todayKey(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function todayOrders(){ return orders.filter(o=>o.date===todayKey()); }
 function monthKey(y,m){ return `${y}-${String(m+1).padStart(2,'0')}`; }
-
 function setSyncStatus(state,text){
   const pill=document.getElementById('sync-pill');
   pill.className=`sync-pill ${state}`;
@@ -403,7 +474,7 @@ function showToast(msg){
 function init(){
   const now=new Date();
   analyticsYear=now.getFullYear(); analyticsMonth=now.getMonth();
-  updateDateHeader(); buildFlavorGrids(); buildPiecesGrid();
+  updateDateHeader(); buildFlavorGrids();
   startOrdersListener(); startDaysListener();
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
@@ -431,74 +502,41 @@ function startDaysListener(){
   const q=query(collection(db,'savedDays'),orderBy('dateKey','asc'));
   onSnapshot(q,(snap)=>{
     savedDays=snap.docs.map(d=>({firestoreId:d.id,...d.data()}));
-    renderAnalytics();
-    updateSaveDayBtn();
+    renderAnalytics(); updateSaveDayBtn();
   });
 }
 
-// ── Save Day ───────────────────────────────────────────────────────────────────
-window.saveDay=async function(){
-  const key=todayKey();
-  const tod=todayOrders();
-  if(!tod.length){ showToast('No orders today to save!'); return; }
-
-  // Check if already saved
-  const existing=savedDays.find(d=>d.dateKey===key);
-
-  // Build piece count map
-  const pieceCounts={};
-  tod.forEach(o=>{ pieceCounts[o.pieces]=(pieceCounts[o.pieces]||0)+1; });
-
-  // Build flavor tally
-  const flavorCounts={};
-  tod.forEach(o=>{
-    flavorCounts[o.flavor1]=(flavorCounts[o.flavor1]||0)+o.pieces;
-    if(o.flavor2) flavorCounts[o.flavor2]=(flavorCounts[o.flavor2]||0)+1;
-  });
-  const bestFlavor=Object.keys(flavorCounts).length
-    ?Object.keys(flavorCounts).reduce((a,b)=>flavorCounts[a]>flavorCounts[b]?a:b):'—';
-
-  const snapshot={
-    dateKey:   key,
-    month:     monthKey(new Date().getFullYear(), new Date().getMonth()),
-    revenue:   tod.reduce((s,o)=>s+o.revenue,0),
-    profit:    tod.reduce((s,o)=>s+o.profit,0),
-    pieces:    tod.reduce((s,o)=>s+o.pieces,0),
-    orderCount:tod.length,
-    cashAmt:   tod.filter(o=>o.payMethod==='cash').reduce((s,o)=>s+o.revenue,0),
-    gcashAmt:  tod.filter(o=>o.payMethod==='gcash').reduce((s,o)=>s+o.revenue,0),
-    unpaidAmt: tod.filter(o=>!o.paid).reduce((s,o)=>s+o.revenue,0),
-    pieceCounts,
-    bestFlavor,
-    savedAt:   Date.now(),
-  };
-
-  try{
-    if(existing){
-      await setDoc(doc(db,'savedDays',existing.firestoreId), snapshot);
-      showToast('Day updated in history ✓');
-    } else {
-      await setDoc(doc(db,'savedDays',key), snapshot);
-      showToast('Day saved to history! 💾');
-    }
-  } catch(e){ showToast('Error saving day'); }
+// ── Tub type selector ──────────────────────────────────────────────────────────
+window.selectTubType=function(type){
+  selTubType = selTubType===type ? null : type;
+  // Reset flavor2 if switching away from 2pc
+  if(selTubType!==2) selFlavor2=null;
+  updateTubUI(); updateFlavorUI(); updatePreview();
 };
 
-function updateSaveDayBtn(){
-  const key=todayKey();
-  const saved=savedDays.find(d=>d.dateKey===key);
-  const btn=document.getElementById('save-day-btn');
-  const lbl=document.getElementById('save-day-label');
-  if(saved){
-    lbl.textContent='✅ Today is saved — tap to update';
-    btn.classList.remove('saved');
-  } else {
-    lbl.textContent='Save Today to History';
-    btn.classList.remove('saved');
-  }
+window.changeQty=function(type, delta){
+  if(type===1){ qty1=Math.max(1,qty1+delta); }
+  else        { qty2=Math.max(1,qty2+delta); }
+  updateTubUI(); updatePreview();
+};
+
+function updateTubUI(){
+  // Highlight active tub option
+  document.getElementById('tub-opt-1').classList.toggle('active-tub', selTubType===1);
+  document.getElementById('tub-opt-2').classList.toggle('active-tub', selTubType===2);
+  document.getElementById('tub-btn-1').classList.toggle('sel', selTubType===1);
+  document.getElementById('tub-btn-2').classList.toggle('sel', selTubType===2);
+
+  // Update qty displays
+  document.getElementById('qty-1').textContent=qty1;
+  document.getElementById('qty-2').textContent=qty2;
+
+  // Disable minus buttons at 1
+  document.getElementById('minus-1').disabled=qty1<=1;
+  document.getElementById('minus-2').disabled=qty2<=1;
 }
 
-// ── Build pickers ──────────────────────────────────────────────────────────────
+// ── Flavor selection ───────────────────────────────────────────────────────────
 function buildFlavorGrids(){
   ['flavor1-grid','flavor2-grid'].forEach((id,isF2)=>{
     const grid=document.getElementById(id);
@@ -512,25 +550,9 @@ function buildFlavorGrids(){
     });
   });
 }
-function buildPiecesGrid(){
-  const grid=document.getElementById('pieces-grid');
-  PIECES.forEach(p=>{
-    const btn=document.createElement('button');
-    btn.className='piece-btn'; btn.textContent=p;
-    btn.onclick=()=>selectPieces(p); btn.dataset.pieces=p;
-    grid.appendChild(btn);
-  });
-}
-
-// ── Selection ──────────────────────────────────────────────────────────────────
 function selectFlavor(name,isF2){
   if(isF2){selFlavor2=selFlavor2===name?null:name;}
-  else{selFlavor1=selFlavor1===name?null:name;selFlavor2=null;}
-  updateFlavorUI(); updatePreview();
-}
-function selectPieces(p){
-  selPieces=selPieces===p?null:p;
-  if(selPieces!==2) selFlavor2=null;
+  else{selFlavor1=selFlavor1===name?null:name; selFlavor2=null;}
   updateFlavorUI(); updatePreview();
 }
 function updateFlavorUI(){
@@ -538,60 +560,98 @@ function updateFlavorUI(){
     b.className='flavor-btn'+(b.dataset.flavor===selFlavor1?' selected':''));
   document.querySelectorAll('[data-which="2"]').forEach(b=>
     b.className='flavor-btn'+(b.dataset.flavor===selFlavor2?' selected-2':''));
-  document.querySelectorAll('[data-pieces]').forEach(b=>
-    b.className='piece-btn'+(parseInt(b.dataset.pieces)===selPieces?' selected':''));
-  const show2=selPieces===2&&selFlavor1;
+
+  // Mixed hint: only when 2pc tub selected AND flavor1 chosen
+  const show2=selTubType===2&&selFlavor1;
   document.getElementById('mixed-hint').className='mixed-hint'+(show2?' show':'');
   document.getElementById('flavor2-field').style.display=show2?'block':'none';
 }
+
+// ── Preview ────────────────────────────────────────────────────────────────────
 function updatePreview(){
   const preview=document.getElementById('order-preview');
   const addBtn=document.getElementById('add-btn');
   const customer=document.getElementById('customer-name').value.trim();
-  if(!selFlavor1||!selPieces){
-    preview.innerHTML='<span>Select flavor &amp; pieces above…</span>';
+
+  if(!selFlavor1||!selTubType){
+    preview.innerHTML='<span>Select flavor &amp; tub size above…</span>';
     addBtn.disabled=true; return;
   }
-  const isMixed=selPieces===2&&selFlavor2;
+
+  const isMixed=selTubType===2&&selFlavor2;
+  const qty=selTubType===1?qty1:qty2;
   const f1=FLAVORS.find(f=>f.name===selFlavor1);
   const f2=isMixed?FLAVORS.find(f=>f.name===selFlavor2):null;
-  const revenue=isMixed?f1.price+f2.price:selPieces*f1.price;
-  const profit=isMixed?(f1.price-f1.cost)+(f2.price-f2.cost):selPieces*(f1.price-f1.cost);
-  const label=isMixed?`${selFlavor1} + ${selFlavor2} (2pc mixed)`:`${selFlavor1} × ${selPieces}pc`;
-  const cHTML=customer?`<span style="color:var(--amber);font-size:10px;display:block;margin-top:2px">👤 ${customer}</span>`:'';
-  preview.innerHTML=`<span class="preview-text">${label}${cHTML}</span>
-    <span class="preview-price">₱${revenue}<span style="font-size:10px;color:var(--green);font-family:var(--font-body);font-weight:400;margin-left:4px">+₱${profit}</span></span>`;
+
+  // Per-tub price
+  const tubRevenue = isMixed ? f1.price+f2.price : selTubType*f1.price;
+  const tubProfit  = isMixed ? (f1.price-f1.cost)+(f2.price-f2.cost) : selTubType*(f1.price-f1.cost);
+  const totalRevenue = tubRevenue*qty;
+  const totalProfit  = tubProfit*qty;
+  const totalPieces  = selTubType*qty;
+
+  const flavorLabel = isMixed ? `${selFlavor1} + ${selFlavor2}` : selFlavor1;
+  const tubLabel    = `${qty} × ${selTubType}pc tub${qty>1?'s':''}`;
+  const cHTML = customer?`<span style="color:var(--amber);font-size:10px;display:block;margin-top:2px">👤 ${customer}</span>`:'';
+
+  preview.innerHTML=`
+    <span class="preview-text">
+      <strong>${flavorLabel}</strong><br>
+      <span style="font-size:10px;color:var(--muted)">${tubLabel} = ${totalPieces} pc total</span>
+      ${cHTML}
+    </span>
+    <span class="preview-price">
+      ₱${totalRevenue}
+      <div class="preview-breakdown" style="font-size:9px;color:var(--green);font-weight:400">+₱${totalProfit} profit</div>
+      ${qty>1?`<div class="preview-breakdown">₱${tubRevenue}/tub</div>`:''}
+    </span>`;
   addBtn.disabled=false;
 }
 
 // ── Add order ──────────────────────────────────────────────────────────────────
 window.addOrder=async function(){
-  if(!selFlavor1||!selPieces) return;
+  if(!selFlavor1||!selTubType) return;
   const btn=document.getElementById('add-btn'); btn.disabled=true;
-  const isMixed=selPieces===2&&selFlavor2;
+
+  const isMixed=selTubType===2&&selFlavor2;
+  const qty=selTubType===1?qty1:qty2;
   const f1=FLAVORS.find(f=>f.name===selFlavor1);
   const f2=isMixed?FLAVORS.find(f=>f.name===selFlavor2):null;
-  const revenue=isMixed?f1.price+f2.price:selPieces*f1.price;
-  const profit=isMixed?(f1.price-f1.cost)+(f2.price-f2.cost):selPieces*(f1.price-f1.cost);
+  const tubRevenue = isMixed ? f1.price+f2.price : selTubType*f1.price;
+  const tubProfit  = isMixed ? (f1.price-f1.cost)+(f2.price-f2.cost) : selTubType*(f1.price-f1.cost);
+  const totalRevenue = tubRevenue*qty;
+  const totalProfit  = tubProfit*qty;
+  const totalPieces  = selTubType*qty;
   const customer=document.getElementById('customer-name').value.trim();
+
   setSyncStatus('syncing','⏫ Saving…');
   try{
     await addDoc(collection(db,'orders'),{
-      date:todayKey(), time:new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}),
-      createdAt:Date.now(), customer:customer||'',
-      flavor1:selFlavor1, flavor2:isMixed?selFlavor2:null,
-      pieces:selPieces, mixed:isMixed, revenue, profit,
+      date:     todayKey(),
+      time:     new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}),
+      createdAt:Date.now(),
+      customer: customer||'',
+      flavor1:  selFlavor1,
+      flavor2:  isMixed?selFlavor2:null,
+      tubType:  selTubType,   // 1 or 2
+      tubQty:   qty,          // number of tubs
+      pieces:   totalPieces,  // total pieces
+      mixed:    isMixed,
+      revenue:  totalRevenue,
+      profit:   totalProfit,
       paid:false, payMethod:null,
     });
-    selFlavor1=selFlavor2=selPieces=null;
+    selFlavor1=selFlavor2=selTubType=null;
+    qty1=qty2=1;
     document.getElementById('customer-name').value='';
-    updateFlavorUI(); updatePreview();
+    updateTubUI(); updateFlavorUI(); updatePreview();
     showToast('Order saved! 🍩');
   }catch(e){
     showToast('Saved offline — will sync when connected');
-    selFlavor1=selFlavor2=selPieces=null;
+    selFlavor1=selFlavor2=selTubType=null;
+    qty1=qty2=1;
     document.getElementById('customer-name').value='';
-    updateFlavorUI(); updatePreview();
+    updateTubUI(); updateFlavorUI(); updatePreview();
   }
   btn.disabled=false;
 };
@@ -610,6 +670,58 @@ window.deleteOrder=async function(fid){
   catch(e){ showToast('Error'); }
 };
 
+// ── Save Day ───────────────────────────────────────────────────────────────────
+window.saveDay=async function(){
+  const key=todayKey();
+  const tod=todayOrders();
+  if(!tod.length){ showToast('No orders today to save!'); return; }
+  const existing=savedDays.find(d=>d.dateKey===key);
+
+  // Piece counts by tub type (1pc tubs / 2pc tubs)
+  const pieceCounts={};
+  tod.forEach(o=>{
+    const k=String(o.tubType||o.pieces); // fallback for legacy orders
+    pieceCounts[k]=(pieceCounts[k]||0)+(o.tubQty||1);
+  });
+
+  const flavorCounts={};
+  tod.forEach(o=>{
+    flavorCounts[o.flavor1]=(flavorCounts[o.flavor1]||0)+o.pieces;
+    if(o.flavor2) flavorCounts[o.flavor2]=(flavorCounts[o.flavor2]||0)+(o.tubQty||1);
+  });
+  const bestFlavor=Object.keys(flavorCounts).length
+    ?Object.keys(flavorCounts).reduce((a,b)=>flavorCounts[a]>flavorCounts[b]?a:b):'—';
+
+  const snapshot={
+    dateKey:    key,
+    month:      monthKey(new Date().getFullYear(),new Date().getMonth()),
+    revenue:    tod.reduce((s,o)=>s+o.revenue,0),
+    profit:     tod.reduce((s,o)=>s+o.profit,0),
+    pieces:     tod.reduce((s,o)=>s+o.pieces,0),
+    orderCount: tod.length,
+    cashAmt:    tod.filter(o=>o.payMethod==='cash').reduce((s,o)=>s+o.revenue,0),
+    gcashAmt:   tod.filter(o=>o.payMethod==='gcash').reduce((s,o)=>s+o.revenue,0),
+    unpaidAmt:  tod.filter(o=>!o.paid).reduce((s,o)=>s+o.revenue,0),
+    pieceCounts, bestFlavor, savedAt:Date.now(),
+  };
+  try{
+    if(existing){
+      await setDoc(doc(db,'savedDays',existing.firestoreId),snapshot);
+      showToast('Day updated in history ✓');
+    } else {
+      await setDoc(doc(db,'savedDays',key),snapshot);
+      showToast('Day saved to history! 💾');
+    }
+  }catch(e){ showToast('Error saving day'); }
+};
+
+function updateSaveDayBtn(){
+  const key=todayKey();
+  const saved=savedDays.find(d=>d.dateKey===key);
+  document.getElementById('save-day-label').textContent=
+    saved?'✅ Today is saved — tap to update':'Save Today to History';
+}
+
 // ── Render all ─────────────────────────────────────────────────────────────────
 function renderAll(){ renderSummary(); renderOrdersList(); renderDailyList(); updateSaveDayBtn(); }
 
@@ -620,7 +732,7 @@ function renderSummary(){
   const pcs=tod.reduce((s,o)=>s+o.pieces,0);
   const unpaidAmt=tod.filter(o=>!o.paid).reduce((s,o)=>s+o.revenue,0);
   const tally={};
-  tod.forEach(o=>{ tally[o.flavor1]=(tally[o.flavor1]||0)+o.pieces; if(o.flavor2) tally[o.flavor2]=(tally[o.flavor2]||0)+1; });
+  tod.forEach(o=>{ tally[o.flavor1]=(tally[o.flavor1]||0)+o.pieces; if(o.flavor2) tally[o.flavor2]=(tally[o.flavor2]||0)+(o.tubQty||1); });
   const best=Object.keys(tally).length?Object.keys(tally).reduce((a,b)=>tally[a]>tally[b]?a:b):'—';
   document.getElementById('sum-revenue').textContent=`₱${rev}`;
   document.getElementById('sum-profit').textContent=`₱${prof}`;
@@ -630,8 +742,14 @@ function renderSummary(){
 }
 
 function orderCardHTML(o){
-  const name=o.mixed?`${o.flavor1} + ${o.flavor2}`:o.flavor1;
-  const meta=o.mixed?`2pc mixed · ${o.time}`:`${o.pieces}pc · ${o.time}`;
+  // Support both new (tubType/tubQty) and legacy (pieces) orders
+  const tubType=o.tubType||o.pieces;
+  const tubQty=o.tubQty||1;
+  const flavorLabel=o.mixed?`${o.flavor1} + ${o.flavor2}`:o.flavor1;
+  const tubLabel=o.mixed
+    ?`${tubQty}×2pc mixed tub${tubQty>1?'s':''}`
+    :`${tubQty}×${tubType}pc tub${tubQty>1?'s':''}`;
+  const meta=`${tubLabel} · ${o.pieces}pc total · ${o.time}`;
   const cHTML=o.customer?`<div class="order-customer">👤 ${o.customer}</div>`:'';
   const pm=o.payMethod||null;
   const badge=o.paid
@@ -641,7 +759,7 @@ function orderCardHTML(o){
     <div class="order-top">
       <div class="order-dot"></div>
       <div class="order-info">
-        <div class="order-name">${name}</div>${cHTML}
+        <div class="order-name">${flavorLabel}</div>${cHTML}
         <div class="order-meta">${meta}</div>
       </div>
       <div class="order-prices">
@@ -683,20 +801,31 @@ function renderDailyList(){
   const lines=[];
   const dateStr=new Date().toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric'});
   lines.push(`🍩 CinnaBun Orders — ${dateStr}`,'');
-  const byPc={};
+
+  // Group by tub type then flavor
+  const byTub={};
   tod.forEach(o=>{
-    if(!byPc[o.pieces]) byPc[o.pieces]={single:{},mixed:{}};
-    if(o.mixed){ const pair=[o.flavor1,o.flavor2].sort().join(' + '); byPc[o.pieces].mixed[pair]=(byPc[o.pieces].mixed[pair]||0)+1; }
-    else byPc[o.pieces].single[o.flavor1]=(byPc[o.pieces].single[o.flavor1]||0)+1;
+    const tubType=o.tubType||o.pieces;
+    if(!byTub[tubType]) byTub[tubType]={single:{},mixed:{}};
+    if(o.mixed){
+      const pair=[o.flavor1,o.flavor2].sort().join(' + ');
+      byTub[tubType].mixed[pair]=(byTub[tubType].mixed[pair]||0)+(o.tubQty||1);
+    } else {
+      byTub[tubType].single[o.flavor1]=(byTub[tubType].single[o.flavor1]||0)+(o.tubQty||1);
+    }
   });
-  Object.keys(byPc).sort((a,b)=>a-b).forEach(pc=>{
-    lines.push(`${pc} pc:`);
-    Object.keys(byPc[pc].single).forEach(fl=>lines.push(`  ${fl} - ${byPc[pc].single[fl]}`));
-    Object.keys(byPc[pc].mixed).forEach(pair=>lines.push(`  ${pair} - ${byPc[pc].mixed[pair]}`));
+
+  Object.keys(byTub).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(tt=>{
+    lines.push(`${tt}pc tubs:`);
+    Object.keys(byTub[tt].single).forEach(fl=>lines.push(`  ${fl} - ${byTub[tt].single[fl]} tub${byTub[tt].single[fl]>1?'s':''}`));
+    Object.keys(byTub[tt].mixed).forEach(pair=>lines.push(`  ${pair} - ${byTub[tt].mixed[pair]} combo tub${byTub[tt].mixed[pair]>1?'s':''}`));
     lines.push('');
   });
+
   const unpaid=tod.filter(o=>!o.paid);
-  const rev=tod.reduce((s,o)=>s+o.revenue,0), prof=tod.reduce((s,o)=>s+o.profit,0), pcs=tod.reduce((s,o)=>s+o.pieces,0);
+  const rev=tod.reduce((s,o)=>s+o.revenue,0);
+  const prof=tod.reduce((s,o)=>s+o.profit,0);
+  const pcs=tod.reduce((s,o)=>s+o.pieces,0);
   const cashAmt=tod.filter(o=>o.payMethod==='cash').reduce((s,o)=>s+o.revenue,0);
   const gcashAmt=tod.filter(o=>o.payMethod==='gcash').reduce((s,o)=>s+o.revenue,0);
   const unpaidAmt=unpaid.reduce((s,o)=>s+o.revenue,0);
@@ -714,19 +843,11 @@ function renderAnalytics(){
   const mk=monthKey(analyticsYear,analyticsMonth);
   document.getElementById('month-label').textContent=`${MONTH_NAMES[analyticsMonth]} ${analyticsYear}`;
   document.getElementById('chart-month-label').textContent=`${MONTH_NAMES[analyticsMonth].slice(0,3)} ${analyticsYear}`;
-
   const monthDays=savedDays.filter(d=>d.month===mk);
-
-  // Monthly totals
-  const mRev  =monthDays.reduce((s,d)=>s+d.revenue,0);
-  const mProf =monthDays.reduce((s,d)=>s+d.profit,0);
-  const mOrd  =monthDays.reduce((s,d)=>s+d.orderCount,0);
-  const mPcs  =monthDays.reduce((s,d)=>s+d.pieces,0);
-  document.getElementById('m-revenue').textContent=`₱${mRev}`;
-  document.getElementById('m-profit').textContent=`₱${mProf}`;
-  document.getElementById('m-orders').textContent=mOrd;
-  document.getElementById('m-pieces').textContent=mPcs;
-
+  document.getElementById('m-revenue').textContent=`₱${monthDays.reduce((s,d)=>s+d.revenue,0)}`;
+  document.getElementById('m-profit').textContent=`₱${monthDays.reduce((s,d)=>s+d.profit,0)}`;
+  document.getElementById('m-orders').textContent=monthDays.reduce((s,d)=>s+d.orderCount,0);
+  document.getElementById('m-pieces').textContent=monthDays.reduce((s,d)=>s+d.pieces,0);
   renderRevenueChart(monthDays);
   renderPieceBreakdown(monthDays);
   renderDayHistory(monthDays);
@@ -734,7 +855,7 @@ function renderAnalytics(){
 
 function renderRevenueChart(days){
   const chart=document.getElementById('revenue-chart');
-  if(!days.length){ chart.innerHTML=`<span style="color:var(--muted);font-size:11px;margin:auto">No saved days this month</span>`; return; }
+  if(!days.length){chart.innerHTML=`<span style="color:var(--muted);font-size:11px;margin:auto">No saved days this month</span>`;return;}
   const maxRev=Math.max(...days.map(d=>d.revenue),1);
   chart.innerHTML=days.map(d=>{
     const h=Math.max(4,Math.round((d.revenue/maxRev)*76));
@@ -749,30 +870,26 @@ function renderRevenueChart(days){
 
 function renderPieceBreakdown(days){
   const container=document.getElementById('piece-breakdown-rows');
-  if(!days.length){ container.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:4px 0">No data for this month.</div>`; return; }
-
-  // Aggregate piece counts across all saved days
+  if(!days.length){container.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:4px 0">No data for this month.</div>`;return;}
   const totals={};
   days.forEach(d=>{
     if(d.pieceCounts) Object.keys(d.pieceCounts).forEach(pc=>{
       totals[pc]=(totals[pc]||0)+d.pieceCounts[pc];
     });
   });
-
   const sorted=Object.keys(totals).sort((a,b)=>parseInt(a)-parseInt(b));
-  if(!sorted.length){ container.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:4px 0">No piece data.</div>`; return; }
+  if(!sorted.length){container.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:4px 0">No tub data.</div>`;return;}
   const maxVal=Math.max(...Object.values(totals),1);
-  const totalOrders=Object.values(totals).reduce((s,v)=>s+v,0);
-
+  const totalTubs=Object.values(totals).reduce((s,v)=>s+v,0);
   container.innerHTML=sorted.map(pc=>{
     const cnt=totals[pc];
     const w=Math.round((cnt/maxVal)*100);
-    const pct=Math.round((cnt/totalOrders)*100);
+    const pct=Math.round((cnt/totalTubs)*100);
     return `<div class="piece-row">
       <div class="piece-tag">${pc}pc</div>
       <div class="piece-bar-wrap"><div class="piece-bar-fill" style="width:${w}%"></div></div>
-      <div class="piece-count">${cnt}</div>
-      <div class="piece-orders-count">${pct}% of orders</div>
+      <div class="piece-count">${cnt} tubs</div>
+      <div class="piece-orders-count">${pct}%</div>
     </div>`;
   }).join('');
 }
@@ -783,14 +900,14 @@ function renderDayHistory(days){
     container.innerHTML=`<div class="hist-empty"><div class="empty-icon">📊</div><p>No saved days yet.<br>Use "Save Today to History"<br>on the Add tab.</p></div>`;
     return;
   }
-  // Sort newest first
   const sorted=[...days].sort((a,b)=>b.dateKey.localeCompare(a.dateKey));
   container.innerHTML=sorted.map(d=>{
     const parts=d.dateKey.split('-');
     const dateObj=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
     const dateLabel=dateObj.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'});
-    const pcEntries=d.pieceCounts?Object.keys(d.pieceCounts).sort((a,b)=>parseInt(a)-parseInt(b))
-      .map(pc=>`<div class="day-detail-row"><span>${pc}pc orders</span><span>${d.pieceCounts[pc]}</span></div>`).join(''):'';
+    const pcEntries=d.pieceCounts
+      ?Object.keys(d.pieceCounts).sort((a,b)=>parseInt(a)-parseInt(b))
+        .map(pc=>`<div class="day-detail-row"><span>${pc}pc tubs sold</span><span>${d.pieceCounts[pc]}</span></div>`).join(''):'';
     return `<div class="day-card">
       <div class="day-card-header" onclick="toggleDay(this)">
         <div class="day-date">${dateLabel}</div>
@@ -818,19 +935,14 @@ function renderDayHistory(days){
 window.toggleDay=function(header){
   const body=header.nextElementSibling;
   const chevron=header.querySelector('.day-chevron');
-  const open=body.classList.toggle('open');
-  chevron.classList.toggle('open',open);
+  chevron.classList.toggle('open',body.classList.toggle('open'));
 };
-
-// ── Month navigation ───────────────────────────────────────────────────────────
 window.changeMonth=function(dir){
   analyticsMonth+=dir;
   if(analyticsMonth>11){analyticsMonth=0;analyticsYear++;}
   if(analyticsMonth<0){analyticsMonth=11;analyticsYear--;}
   renderAnalytics();
 };
-
-// ── Tab switch ─────────────────────────────────────────────────────────────────
 window.switchTab=function(tab){
   document.querySelectorAll('.tab').forEach((t,i)=>
     t.classList.toggle('active',['add','orders','daily','analytics'][i]===tab));
@@ -838,8 +950,6 @@ window.switchTab=function(tab){
     p.classList.toggle('active',p.id===`page-${tab}`));
   if(tab==='analytics') renderAnalytics();
 };
-
-// ── Copy ───────────────────────────────────────────────────────────────────────
 window.copyList=function(){
   const text=document.getElementById('daily-output').textContent;
   const btn=document.getElementById('copy-btn');
