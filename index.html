@@ -36,6 +36,7 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 .brand-text p{font-size:10px;color:var(--muted);margin-top:1px}
 .date-badge{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 9px;text-align:right}
 .date-badge .day{font-family:var(--font-display);font-size:20px;color:var(--amber);line-height:1;font-weight:700}
+.date-badge .clock{font-size:9px;color:var(--amber);letter-spacing:.04em;margin-top:2px;font-family:var(--font-body);font-weight:500}
 .date-badge .month{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 .sync-pill{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;margin-top:6px;width:fit-content}
 .sync-pill.synced{background:rgba(74,154,74,.15);color:var(--green);border:1px solid rgba(74,154,74,.3)}
@@ -266,6 +267,7 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
     <div class="date-badge">
       <div class="day" id="hdr-day">--</div>
       <div class="month" id="hdr-month">---</div>
+      <div class="clock" id="hdr-clock">--:--:--</div>
     </div>
   </div>
   <div class="sync-pill syncing" id="sync-pill">
@@ -474,9 +476,15 @@ function showToast(msg){
 function init(){
   const now=new Date();
   analyticsYear=now.getFullYear(); analyticsMonth=now.getMonth();
-  updateDateHeader(); buildFlavorGrids();
+  updateDateHeader(); buildFlavorGrids(); tickClock();
   startOrdersListener(); startDaysListener();
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+function tickClock(){
+  const pad=n=>String(n).padStart(2,"0");
+  const t=new Date();
+  document.getElementById("hdr-clock").textContent=`${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
+  setTimeout(tickClock,1000);
 }
 function updateDateHeader(){
   const d=new Date();
