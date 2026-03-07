@@ -692,7 +692,7 @@ function renderDailyList(){
   Object.keys(byPc).sort((a,b)=>a-b).forEach(pc=>{
     lines.push(`${pc} pc:`);
     Object.keys(byPc[pc].single).forEach(fl=>lines.push(`  ${fl} - ${byPc[pc].single[fl]}`));
-    Object.keys(byPc[pc].mixed).forEach(pair=>lines.push(`  ${pair} - ${byPc[pc].mixed[pair]} combo`));
+    Object.keys(byPc[pc].mixed).forEach(pair=>lines.push(`  ${pair} - ${byPc[pc].mixed[pair]}`));
     lines.push('');
   });
   const unpaid=tod.filter(o=>!o.paid);
