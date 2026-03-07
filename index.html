@@ -509,7 +509,6 @@ function startDaysListener(){
 // ── Tub type selector ──────────────────────────────────────────────────────────
 window.selectTubType=function(type){
   selTubType = selTubType===type ? null : type;
-  // Reset flavor2 if switching away from 2pc
   if(selTubType!==2) selFlavor2=null;
   updateTubUI(); updateFlavorUI(); updatePreview();
 };
@@ -521,19 +520,22 @@ window.changeQty=function(type, delta){
 };
 
 function updateTubUI(){
-  // Highlight active tub option
-  document.getElementById('tub-opt-1').classList.toggle('active-tub', selTubType===1);
-  document.getElementById('tub-opt-2').classList.toggle('active-tub', selTubType===2);
-  document.getElementById('tub-btn-1').classList.toggle('sel', selTubType===1);
-  document.getElementById('tub-btn-2').classList.toggle('sel', selTubType===2);
-
-  // Update qty displays
-  document.getElementById('qty-1').textContent=qty1;
-  document.getElementById('qty-2').textContent=qty2;
-
-  // Disable minus buttons at 1
-  document.getElementById('minus-1').disabled=qty1<=1;
-  document.getElementById('minus-2').disabled=qty2<=1;
+  const o1=document.getElementById('tub-opt-1');
+  const o2=document.getElementById('tub-opt-2');
+  const b1=document.getElementById('tub-btn-1');
+  const b2=document.getElementById('tub-btn-2');
+  const q1el=document.getElementById('qty-1');
+  const q2el=document.getElementById('qty-2');
+  const m1=document.getElementById('minus-1');
+  const m2=document.getElementById('minus-2');
+  if(o1) o1.classList.toggle('active-tub', selTubType===1);
+  if(o2) o2.classList.toggle('active-tub', selTubType===2);
+  if(b1) b1.classList.toggle('sel', selTubType===1);
+  if(b2) b2.classList.toggle('sel', selTubType===2);
+  if(q1el) q1el.textContent=qty1;
+  if(q2el) q2el.textContent=qty2;
+  if(m1) m1.disabled=qty1<=1;
+  if(m2) m2.disabled=qty2<=1;
 }
 
 // ── Flavor selection ───────────────────────────────────────────────────────────
