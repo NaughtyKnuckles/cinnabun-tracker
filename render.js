@@ -124,9 +124,9 @@ function renderDailyList() {
   Object.keys(byTub).sort((a, b) => parseInt(a) - parseInt(b)).forEach(tt => {
     lines.push(`${tt}pc tubs:`);
     Object.keys(byTub[tt].single).forEach(fl =>
-      lines.push(`  ${fl} - ${byTub[tt].single[fl]} tub${byTub[tt].single[fl] > 1 ? 's' : ''}`));
+      lines.push(`  ${fl} - ${byTub[tt].single[fl]}`));
     Object.keys(byTub[tt].mixed).forEach(pair =>
-      lines.push(`  ${pair} - ${byTub[tt].mixed[pair]} combo tub${byTub[tt].mixed[pair] > 1 ? 's' : ''}`));
+      lines.push(`  ${pair} - ${byTub[tt].mixed[pair]}`));
     lines.push('');
   });
 
