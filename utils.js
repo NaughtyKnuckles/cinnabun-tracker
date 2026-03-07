@@ -44,13 +44,14 @@ export function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-// ── Header date (static — set once on load) ────────────────────────────────────
-// The clock in the header shows the time the page was opened, not a live clock.
+// ── Header date + build timestamp ─────────────────────────────────────────────
+// Update BUILD_TIMESTAMP every time you push changes so you can confirm
+// the latest code is live in your app.
+const BUILD_TIMESTAMP = 'Mar 8, 2026 — 11:45 PM';
 
 export function setDateHeader() {
   const d = new Date();
-  const pad = n => String(n).padStart(2, '0');
   document.getElementById('hdr-day').textContent   = d.getDate();
   document.getElementById('hdr-month').textContent = d.toLocaleDateString('en-PH', { month: 'short', year: 'numeric' });
-  document.getElementById('hdr-clock').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  document.getElementById('hdr-clock').textContent = `Updated — ${BUILD_TIMESTAMP}`;
 }
