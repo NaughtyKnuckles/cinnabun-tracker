@@ -67,3 +67,11 @@ export async function deleteOrderFromFirestore(fid) {
 export async function saveDayToFirestore(key, snapshot) {
   return setDoc(doc(db, 'savedDays', key), snapshot);
 }
+
+export async function updateSavedDayInFirestore(fid, data) {
+  return updateDoc(doc(db, 'savedDays', fid), data);
+}
+
+export async function deleteSavedDayFromFirestore(fid) {
+  return deleteDoc(doc(db, 'savedDays', fid));
+}
