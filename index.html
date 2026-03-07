@@ -316,30 +316,30 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
 
         <!-- 1pc tub -->
         <div class="tub-option" id="tub-opt-1">
-          <button class="tub-type-btn t1" id="tub-btn-1" onclick="selectTubType(1)">
+          <button class="tub-type-btn t1" id="tub-btn-1" >
             1pc<span>per tub</span>
           </button>
           <div class="qty-row">
             <span class="qty-label">Tubs</span>
             <div class="qty-stepper">
-              <button class="qty-btn" id="minus-1" onclick="changeQty(1,-1)" disabled>−</button>
+              <button class="qty-btn" id="minus-1"  disabled>−</button>
               <div class="qty-val" id="qty-1">1</div>
-              <button class="qty-btn" id="plus-1" onclick="changeQty(1,1)">+</button>
+              <button class="qty-btn" id="plus-1" >+</button>
             </div>
           </div>
         </div>
 
         <!-- 2pc tub -->
         <div class="tub-option" id="tub-opt-2">
-          <button class="tub-type-btn t2" id="tub-btn-2" onclick="selectTubType(2)">
+          <button class="tub-type-btn t2" id="tub-btn-2" >
             2pc<span>per tub</span>
           </button>
           <div class="qty-row">
             <span class="qty-label">Tubs</span>
             <div class="qty-stepper">
-              <button class="qty-btn" id="minus-2" onclick="changeQty(2,-1)" disabled>−</button>
+              <button class="qty-btn" id="minus-2"  disabled>−</button>
               <div class="qty-val" id="qty-2">1</div>
-              <button class="qty-btn" id="plus-2" onclick="changeQty(2,1)">+</button>
+              <button class="qty-btn" id="plus-2" >+</button>
             </div>
           </div>
         </div>
@@ -363,7 +363,7 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
       <span>Select flavor &amp; tub size above…</span>
     </div>
 
-    <button class="add-btn" id="add-btn" onclick="addOrder()" disabled>Add Order</button>
+    <button class="add-btn" id="add-btn"  disabled>Add Order</button>
   </div>
 
   <button class="save-day-btn" id="save-day-btn" onclick="saveDay()">
@@ -515,13 +515,13 @@ function startDaysListener(){
 }
 
 // ── Tub type selector ──────────────────────────────────────────────────────────
-window.selectTubType=function(type){
+function selectTubType(type){
   selTubType = selTubType===type ? null : type;
   if(selTubType!==2) selFlavor2=null;
   updateTubUI(); updateFlavorUI(); updatePreview();
 };
 
-window.changeQty=function(type, delta){
+function changeQty(type, delta){
   if(type===1){ qty1=Math.max(1,qty1+delta); }
   else        { qty2=Math.max(1,qty2+delta); }
   updateTubUI(); updatePreview();
@@ -619,7 +619,7 @@ function updatePreview(){
 }
 
 // ── Add order ──────────────────────────────────────────────────────────────────
-window.addOrder=async function(){
+async function addOrder(){
   if(!selFlavor1||!selTubType) return;
   const btn=document.getElementById('add-btn'); btn.disabled=true;
 
@@ -975,6 +975,13 @@ window.copyList=function(){
 };
 
 document.getElementById('customer-name').addEventListener('input',updatePreview);
+  document.getElementById('tub-btn-1').addEventListener('click',()=>selectTubType(1));
+  document.getElementById('tub-btn-2').addEventListener('click',()=>selectTubType(2));
+  document.getElementById('minus-1').addEventListener('click',()=>changeQty(1,-1));
+  document.getElementById('plus-1').addEventListener('click',()=>changeQty(1,1));
+  document.getElementById('minus-2').addEventListener('click',()=>changeQty(2,-1));
+  document.getElementById('plus-2').addEventListener('click',()=>changeQty(2,1));
+  document.getElementById('add-btn').addEventListener('click',addOrder);
 init();
 </script>
 </body>
