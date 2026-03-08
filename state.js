@@ -13,7 +13,9 @@ export let qty2       = 1;
 export let analyticsYear;
 export let analyticsMonth;
 
-export let currentUser = null;   // Firebase User object, set after login
+export let currentUser  = null;   // Firebase User object, set after login
+export let accountType  = null;   // 'seller' | 'customer' — loaded from Firestore profile
+export let customerType = 'normal'; // per-order: 'reseller' | 'normal'
 
 // Setters
 export function setOrders(v)         { orders        = v; }
@@ -25,4 +27,8 @@ export function setQty1(v)           { qty1          = v; }
 export function setQty2(v)           { qty2          = v; }
 export function setAnalyticsYear(v)  { analyticsYear = v; }
 export function setAnalyticsMonth(v) { analyticsMonth= v; }
-export function setCurrentUser(v)    { currentUser   = v; }
+export function setCurrentUser(v)      { currentUser    = v; }
+export function setAccountType(v)       { accountType    = v; }
+export function setSelCustomerType(v)   { selCustomerType = v; }
+export function setAccountType(v)    { accountType   = v; }
+export function setCustomerType(v)   { customerType  = v; }
