@@ -55,7 +55,8 @@ function orderCardHTML(o) {
     ? `<span class="paid-badge ${pm}">${pm === 'cash' ? '💵 Cash' : '💙 GCash'}</span>`
     : `<span class="unpaid-badge">UNPAID</span>`;
 
-  return `<div class="order-item${o.mixed ? ' mixed-item' : ''}${o.paid ? ' paid-item' : ''}">
+  const delivered = !!o.delivered;
+  return `<div class="order-item${o.mixed ? ' mixed-item' : ''}${o.paid ? ' paid-item' : ''}${o.delivered ? ' delivered-item' : ''}">
     <div class="order-top">
       <div class="order-dot"></div>
       <div class="order-info">
@@ -66,12 +67,20 @@ function orderCardHTML(o) {
         <div class="order-revenue">₱${o.revenue}</div>
         <div class="order-profit">+₱${o.profit}</div>
       </div>
-      <button class="del-btn" onclick="deleteOrder('${o.firestoreId}')">✕</button>
+      <div class="order-top-right">
+        ${delivered ? '<span class="delivered-badge">🚚 Delivered</span>' : ''}
+        <button class="del-btn" onclick="deleteOrder('${o.firestoreId}')">✕</button>
+      </div>
     </div>
     <div class="order-bottom">
       <button class="pay-btn cash ${pm === 'cash' ? 'active-cash' : ''}" onclick="markPayment('${o.firestoreId}','cash','${pm}')">💵 Cash</button>
       <button class="pay-btn gcash ${pm === 'gcash' ? 'active-gcash' : ''}" onclick="markPayment('${o.firestoreId}','gcash','${pm}')">💙 GCash</button>
       ${badge}
+    </div>
+    <div class="order-delivery-row">
+      <button class="delivery-btn ${delivered ? 'delivered-active' : ''}" onclick="toggleDelivered('${o.firestoreId}',${delivered})">
+        ${delivered ? '✅ Delivered' : '🚚 Mark as Delivered'}
+      </button>
     </div>
   </div>`;
 }
@@ -162,6 +171,15 @@ window.markPayment = async function(fid, method, cur) {
     await updateOrderInFirestore(uid, fid, { paid: nm !== null, payMethod: nm });
     showToast(nm ? `Marked as ${nm} ✓` : 'Marked as unpaid');
   } catch { showToast('Error updating payment'); }
+};
+
+window.toggleDelivered = async function(fid, cur) {
+  const uid = currentUser?.uid;
+  if (!uid) return;
+  try {
+    await updateOrderInFirestore(uid, fid, { delivered: !cur });
+    showToast(!cur ? '🚚 Marked as delivered!' : 'Delivery status cleared');
+  } catch { showToast('Error'); }
 };
 
 window.deleteOrder = async function(fid) {
