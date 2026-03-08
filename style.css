@@ -342,3 +342,107 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
   color: #2ec4a8;
 }
 .delivery-btn:active { opacity: .7; }
+
+/* ── Account type badge ───────────────────────────────────────────────────── */
+.account-badge {
+  font-size: 9px; font-weight: 700; padding: 3px 8px;
+  border-radius: 12px; white-space: nowrap;
+}
+.account-badge.seller   { background: rgba(200,101,10,.15); color: var(--amber); border: 1px solid rgba(200,101,10,.3); }
+.account-badge.customer { background: rgba(74,143,200,.12); color: var(--blue);  border: 1px solid rgba(74,143,200,.3); }
+
+/* ── Customer type toggle ─────────────────────────────────────────────────── */
+.ct-toggle {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.ct-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 6px; border-radius: var(--radius);
+  background: var(--bg3); border: 2px solid var(--border);
+  cursor: pointer; transition: all .15s; font-family: var(--font-body);
+}
+.ct-btn .ct-icon  { font-size: 18px; line-height: 1; }
+.ct-btn .ct-label { font-size: 12px; font-weight: 700; color: var(--text); }
+.ct-btn .ct-price { font-size: 9px; color: var(--muted); font-weight: 500; }
+
+.ct-btn.ct-active[data-ct="normal"] {
+  border-color: var(--blue); background: rgba(74,143,200,.12);
+}
+.ct-btn.ct-active[data-ct="normal"] .ct-label { color: var(--blue); }
+.ct-btn.ct-active[data-ct="reseller"] {
+  border-color: var(--amber); background: rgba(200,101,10,.12);
+}
+.ct-btn.ct-active[data-ct="reseller"] .ct-label { color: var(--amber); }
+.ct-btn:active { opacity: .7; }
+
+/* Auth account type select */
+.auth-input option { background: var(--bg2); color: var(--cream); }
+
+/* ── Account type badge ───────────────────────────────────────────────────── */
+.account-badge {
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: 10px; white-space: nowrap;
+}
+.account-badge.reseller {
+  background: rgba(200,101,10,.15); color: var(--amber);
+  border: 1px solid rgba(200,101,10,.3);
+}
+.account-badge.seller {
+  background: rgba(74,143,200,.15); color: var(--blue);
+  border: 1px solid rgba(74,143,200,.3);
+}
+
+/* ── Auth account type select ─────────────────────────────────────────────── */
+.auth-select { appearance: none; cursor: pointer; }
+
+/* ── Customer type toggle ─────────────────────────────────────────────────── */
+.ctype-toggle-wrap {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 8px 12px;
+}
+.ctype-label {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .05em; white-space: nowrap;
+}
+.ctype-toggle {
+  display: flex; gap: 6px; flex: 1;
+}
+.ctype-btn {
+  flex: 1; padding: 8px 6px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  font-family: var(--font-body); transition: all .15s;
+  background: var(--bg); border: 1.5px solid var(--border); color: var(--muted);
+}
+.ctype-btn.ctype-active {
+  background: rgba(200,101,10,.15); border-color: var(--amber); color: var(--amber);
+}
+.ctype-btn:active { opacity: .7; }
+
+/* ── Customer type tags on order cards ────────────────────────────────────── */
+.order-ctype {
+  font-size: 9px; font-weight: 700; padding: 1px 5px;
+  border-radius: 5px; vertical-align: middle; margin-left: 4px;
+}
+.reseller-ctype {
+  background: rgba(200,101,10,.12); color: var(--amber);
+  border: 1px solid rgba(200,101,10,.25);
+}
+.normal-ctype {
+  background: rgba(74,143,200,.1); color: var(--blue);
+  border: 1px solid rgba(74,143,200,.2);
+}
+
+/* ── Customer type tag on order preview ───────────────────────────────────── */
+.ctype-tag {
+  display: inline-block; font-size: 9px; font-weight: 700;
+  padding: 2px 7px; border-radius: 6px; margin-top: 4px;
+}
+.reseller-tag {
+  background: rgba(200,101,10,.12); color: var(--amber);
+  border: 1px solid rgba(200,101,10,.3);
+}
+.normal-tag {
+  background: rgba(74,143,200,.1); color: var(--blue);
+  border: 1px solid rgba(74,143,200,.2);
+}
