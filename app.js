@@ -8,7 +8,7 @@ import {
   selCustomerType, setSelCustomerType,
 } from './state.js';
 import {
-  FLAVORS, ACCOUNT_TYPE_RESELLER, ACCOUNT_TYPE_SELLER, flavorPrice,
+  FLAVORS, ACCOUNT_TYPE_RESELLER, ACCOUNT_TYPE_MAIN_SELLER, flavorPrice,
   todayKey, monthKey, setDateHeader, showToast, setSyncStatus,
 } from './utils.js';
 import {
@@ -33,31 +33,26 @@ function showApp(user, type) {
   setAccountType(type || ACCOUNT_TYPE_RESELLER);
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
-  document.getElementById('loading').classList.remove('hidden');  // show while Firestore connects
+  document.getElementById('loading').classList.remove('hidden');
 
   document.getElementById('user-display-name').textContent = user.displayName || user.email;
 
-  // Show account type badge in header
+  // Account badge
   const badge = document.getElementById('account-type-badge');
   if (badge) {
-    badge.textContent  = accountType === ACCOUNT_TYPE_SELLER ? '🏪 Seller' : '🔄 Reseller';
-    badge.className    = `account-badge ${accountType}`;
+    const isMain = accountType === ACCOUNT_TYPE_MAIN_SELLER;
+    badge.textContent = isMain ? '🏪 Main Seller' : '🔄 Reseller';
+    badge.className   = `account-badge ${accountType}`;
   }
 
-  // Hide profit column entirely for Seller accounts
   applyAccountTypeUI();
-
   initApp();
 }
 
 function applyAccountTypeUI() {
-  const isSeller = accountType === ACCOUNT_TYPE_SELLER;
-  // Hide profit stat card on Add tab
-  document.querySelectorAll('.stat.profit').forEach(el => el.style.display = isSeller ? 'none' : '');
-  // Hide profit column in summary for seller
-  document.getElementById('sum-profit-wrap')?.style && (
-    document.getElementById('sum-profit-wrap').style.display = isSeller ? 'none' : ''
-  );
+  const isMain = accountType === ACCOUNT_TYPE_MAIN_SELLER;
+  // Hide profit stat on Add tab for main seller
+  document.querySelectorAll('.stat.profit').forEach(el => el.style.display = isMain ? 'none' : '');
 }
 
 window.doLogin = async function() {
@@ -147,7 +142,6 @@ function initApp() {
   const now = new Date();
   setAnalyticsYear(now.getFullYear());
   setAnalyticsMonth(now.getMonth());
-  setSelCustomerType('normal'); // reset to normal on each login
 
   setDateHeader();
   buildFlavorGrids();
@@ -158,7 +152,7 @@ function initApp() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
-// ── Customer type toggle (per order) ──────────────────────────────────────────
+// ── Selling-to toggle (sticky) ─────────────────────────────────────────────────
 
 window.setCustomerType = function(type) {
   setSelCustomerType(type);
@@ -170,10 +164,10 @@ function updateCustomerTypeUI() {
   const btnNormal   = document.getElementById('ctype-normal');
   const btnReseller = document.getElementById('ctype-reseller');
   if (!btnNormal) return;
-  btnNormal.classList.toggle('ctype-active', selCustomerType === 'normal');
+  btnNormal.classList.toggle('ctype-active',   selCustomerType === 'normal');
   btnReseller.classList.toggle('ctype-active', selCustomerType === 'reseller');
 
-  // Update price tags on flavor buttons to reflect current customer type
+  // Update price labels on flavor buttons to reflect active customer type
   document.querySelectorAll('.flavor-btn[data-flavor]').forEach(btn => {
     const f = FLAVORS.find(f => f.name === btn.dataset.flavor);
     if (!f) return;
@@ -219,8 +213,7 @@ function updateFlavorUI() {
   const show2 = selTubType === 2 && selFlavor1;
   document.getElementById('mixed-hint').className        = 'mixed-hint' + (show2 ? ' show' : '');
   document.getElementById('flavor2-field').style.display = show2 ? 'block' : 'none';
-  // Re-apply price tags after class reset
-  updateCustomerTypeUI();
+  updateCustomerTypeUI(); // re-apply price tags after class reset
 }
 
 // ── Tub type / qty ─────────────────────────────────────────────────────────────
@@ -254,7 +247,7 @@ function updatePreview() {
   const preview  = document.getElementById('order-preview');
   const addBtn   = document.getElementById('add-btn');
   const customer = document.getElementById('customer-name').value.trim();
-  const isSeller = accountType === ACCOUNT_TYPE_SELLER;
+  const isMain   = accountType === ACCOUNT_TYPE_MAIN_SELLER;
 
   if (!selFlavor1 || !selTubType) {
     preview.innerHTML = '<span>Select flavor &amp; tub size above…</span>';
@@ -269,8 +262,9 @@ function updatePreview() {
   const p1         = flavorPrice(f1, selCustomerType);
   const p2         = f2 ? flavorPrice(f2, selCustomerType) : 0;
   const tubRevenue = isMixed ? p1 + p2 : selTubType * p1;
-  const tubProfit  = isSeller ? null :
-    isMixed ? (p1 - f1.cost) + (p2 - f2.cost) : selTubType * (p1 - f1.cost);
+  const tubProfit  = isMain ? null
+    : isMixed ? (p1 - f1.cost) + (p2 - f2.cost)
+    : selTubType * (p1 - f1.cost);
   const totalRevenue = tubRevenue * qty;
   const totalProfit  = tubProfit !== null ? tubProfit * qty : null;
   const totalPieces  = selTubType * qty;
@@ -279,14 +273,14 @@ function updatePreview() {
   const ctypeBadge   = selCustomerType === 'reseller'
     ? `<span class="ctype-tag reseller-tag">🔄 Reseller price</span>`
     : `<span class="ctype-tag normal-tag">👤 Normal price</span>`;
-  const cHTML = customer ? `<span style="color:var(--amber);font-size:10px;display:block;margin-top:2px">👤 ${customer}</span>` : '';
+  const cHTML = customer
+    ? `<span style="color:var(--amber);font-size:10px;display:block;margin-top:2px">👤 ${customer}</span>` : '';
 
   preview.innerHTML = `
     <span class="preview-text">
       <strong>${flavorLabel}</strong><br>
       <span style="font-size:10px;color:var(--muted)">${tubLabel} = ${totalPieces} pc total</span>
-      ${ctypeBadge}
-      ${cHTML}
+      ${ctypeBadge}${cHTML}
     </span>
     <span class="preview-price">
       ₱${totalRevenue}
@@ -303,16 +297,17 @@ async function addOrder() {
   const btn = document.getElementById('add-btn');
   btn.disabled = true;
 
-  const isSeller   = accountType === ACCOUNT_TYPE_SELLER;
-  const isMixed    = selTubType === 2 && selFlavor2;
-  const qty        = selTubType === 1 ? qty1 : qty2;
-  const f1         = FLAVORS.find(f => f.name === selFlavor1);
-  const f2         = isMixed ? FLAVORS.find(f => f.name === selFlavor2) : null;
-  const p1         = flavorPrice(f1, selCustomerType);
-  const p2         = f2 ? flavorPrice(f2, selCustomerType) : 0;
-  const tubRevenue = isMixed ? p1 + p2 : selTubType * p1;
-  const tubProfit  = isSeller ? 0 :
-    isMixed ? (p1 - f1.cost) + (p2 - f2.cost) : selTubType * (p1 - f1.cost);
+  const isMain   = accountType === ACCOUNT_TYPE_MAIN_SELLER;
+  const isMixed  = selTubType === 2 && selFlavor2;
+  const qty      = selTubType === 1 ? qty1 : qty2;
+  const f1       = FLAVORS.find(f => f.name === selFlavor1);
+  const f2       = isMixed ? FLAVORS.find(f => f.name === selFlavor2) : null;
+  const p1       = flavorPrice(f1, selCustomerType);
+  const p2       = f2 ? flavorPrice(f2, selCustomerType) : 0;
+  const tubRev   = isMixed ? p1 + p2 : selTubType * p1;
+  const tubProf  = isMain ? 0
+    : isMixed ? (p1 - f1.cost) + (p2 - f2.cost)
+    : selTubType * (p1 - f1.cost);
   const customer = document.getElementById('customer-name').value.trim();
 
   const payload = {
@@ -326,13 +321,13 @@ async function addOrder() {
     tubQty:       qty,
     pieces:       selTubType * qty,
     mixed:        isMixed,
-    customerType: selCustomerType,   // 'normal' | 'reseller'
-    revenue:      tubRevenue * qty,
-    profit:       tubProfit * qty,
+    customerType: selCustomerType,
+    revenue:      tubRev * qty,
+    profit:       tubProf * qty,
     paid:         false,
     payMethod:    null,
     delivered:    false,
-    accountType:  accountType,
+    accountType,
   };
 
   setSyncStatus('syncing', '⏫ Saving…');
@@ -343,11 +338,11 @@ async function addOrder() {
     showToast('Saved offline — will sync when connected');
   }
 
+  // Reset flavor + tub but KEEP selCustomerType (sticky)
   setSelFlavor1(null); setSelFlavor2(null); setSelTubType(null);
   setQty1(1); setQty2(1);
-  setSelCustomerType('normal');
   document.getElementById('customer-name').value = '';
-  updateTubUI(); updateFlavorUI(); updateCustomerTypeUI(); updatePreview();
+  updateTubUI(); updateFlavorUI(); updatePreview();
   btn.disabled = false;
 }
 
@@ -361,7 +356,7 @@ window.saveDay = async function() {
 
   const { savedDays } = await import('./state.js');
   const existing = savedDays.find(d => d.dateKey === key);
-  const isSeller = accountType === ACCOUNT_TYPE_SELLER;
+  const isMain   = accountType === ACCOUNT_TYPE_MAIN_SELLER;
 
   const pieceCounts  = {};
   const flavorCounts = {};
@@ -372,24 +367,21 @@ window.saveDay = async function() {
     if (o.flavor2) flavorCounts[o.flavor2] = (flavorCounts[o.flavor2] || 0) + (o.tubQty || 1);
   });
   const bestFlavor = Object.keys(flavorCounts).length
-    ? Object.keys(flavorCounts).reduce((a, b) => flavorCounts[a] > flavorCounts[b] ? a : b)
-    : '—';
+    ? Object.keys(flavorCounts).reduce((a, b) => flavorCounts[a] > flavorCounts[b] ? a : b) : '—';
 
   const snapshot = {
-    dateKey:    key,
-    month:      monthKey(new Date().getFullYear(), new Date().getMonth()),
-    revenue:    tod.reduce((s, o) => s + o.revenue, 0),
-    profit:     isSeller ? 0 : tod.reduce((s, o) => s + o.profit, 0),
-    pieces:     tod.reduce((s, o) => s + o.pieces, 0),
-    orderCount: tod.length,
-    cashAmt:    tod.filter(o => o.payMethod === 'cash').reduce((s, o) => s + o.revenue, 0),
-    gcashAmt:   tod.filter(o => o.payMethod === 'gcash').reduce((s, o) => s + o.revenue, 0),
-    unpaidAmt:  tod.filter(o => !o.paid).reduce((s, o) => s + o.revenue, 0),
-    // Reseller vs normal customer split
+    dateKey:         key,
+    month:           monthKey(new Date().getFullYear(), new Date().getMonth()),
+    revenue:         tod.reduce((s, o) => s + o.revenue, 0),
+    profit:          isMain ? 0 : tod.reduce((s, o) => s + o.profit, 0),
+    pieces:          tod.reduce((s, o) => s + o.pieces, 0),
+    orderCount:      tod.length,
+    cashAmt:         tod.filter(o => o.payMethod === 'cash').reduce((s, o) => s + o.revenue, 0),
+    gcashAmt:        tod.filter(o => o.payMethod === 'gcash').reduce((s, o) => s + o.revenue, 0),
+    unpaidAmt:       tod.filter(o => !o.paid).reduce((s, o) => s + o.revenue, 0),
     normalRevenue:   tod.filter(o => o.customerType !== 'reseller').reduce((s, o) => s + o.revenue, 0),
     resellerRevenue: tod.filter(o => o.customerType === 'reseller').reduce((s, o) => s + o.revenue, 0),
-    pieceCounts, bestFlavor, savedAt: Date.now(),
-    accountType,
+    pieceCounts, bestFlavor, savedAt: Date.now(), accountType,
   };
 
   try {
