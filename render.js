@@ -2,7 +2,7 @@
 // Reads state, updates DOM. Covers: summary stats, orders list, daily share list.
 
 import { orders, currentUser, accountType } from './state.js';
-import { ACCOUNT_TYPE_SELLER } from './utils.js';
+import { ACCOUNT_TYPE_MAIN_SELLER } from './utils.js';
 import { todayKey, showToast } from './utils.js';
 import { updateOrderInFirestore, deleteOrderFromFirestore } from './firebase.js';
 import { updateSaveDayBtn } from './analytics.js';
@@ -32,7 +32,7 @@ function renderSummary() {
     ? Object.keys(tally).reduce((a, b) => tally[a] > tally[b] ? a : b)
     : '—';
 
-  const isSeller = accountType === ACCOUNT_TYPE_SELLER;
+  const isSeller = accountType === ACCOUNT_TYPE_MAIN_SELLER;
   document.getElementById('sum-revenue').textContent = `₱${rev}`;
   document.getElementById('sum-profit').textContent  = isSeller ? '—' : `₱${prof}`;
   document.getElementById('sum-pieces').textContent  = pcs;
@@ -55,7 +55,7 @@ function orderCardHTML(o) {
   const ctBadge = o.customerType === 'reseller'
     ? `<span class="order-ctype reseller-ctype">🔄 Reseller</span>`
     : `<span class="order-ctype normal-ctype">👤 Normal</span>`;
-  const isSeller = accountType === ACCOUNT_TYPE_SELLER;
+  const isSeller = accountType === ACCOUNT_TYPE_MAIN_SELLER;
   const cHTML = o.customer ? `<div class="order-customer">👤 ${o.customer}</div>` : '';
   const pm    = o.payMethod || null;
   const badge = o.paid
