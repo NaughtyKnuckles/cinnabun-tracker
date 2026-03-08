@@ -1,9 +1,10 @@
-const CACHE = 'cinnabun-v2';
+const CACHE = 'cinnabun-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
   './style.css',
   './app.js',
+  './auth.js',
   './firebase.js',
   './render.js',
   './analytics.js',
