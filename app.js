@@ -17,7 +17,7 @@ import {
 } from './firebase.js';
 import { renderAnalytics } from './analytics.js';
 import { todayOrders } from './render.js';
-import { watchAuth, login, logout, register } from './auth.js';
+import { watchAuth, loginByName, logout, register } from './auth.js';
 
 // ── Auth flow ──────────────────────────────────────────────────────────────────
 
@@ -56,14 +56,14 @@ function applyAccountTypeUI() {
 }
 
 window.doLogin = async function() {
-  const email = document.getElementById('auth-email').value.trim();
-  const pw    = document.getElementById('auth-pw').value;
-  const err   = document.getElementById('auth-error');
+  const name = document.getElementById('auth-login-name').value.trim();
+  const pw   = document.getElementById('auth-pw').value;
+  const err  = document.getElementById('auth-error');
   err.textContent = '';
-  if (!email || !pw) { err.textContent = 'Please enter email and password.'; return; }
+  if (!name || !pw) { err.textContent = 'Please enter your name and password.'; return; }
   setAuthLoading(true);
   try {
-    await login(email, pw);
+    await loginByName(name, pw);
   } catch (e) {
     err.textContent = friendlyAuthError(e.code);
     setAuthLoading(false);
