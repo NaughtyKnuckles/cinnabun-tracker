@@ -1,29 +1,139 @@
 // ── app.js ─────────────────────────────────────────────────────────────────────
-// Entry point. Handles: init, flavor/tub UI, preview, add order, save day,
-// tab switching, and copy-list. Wires all event listeners.
+// Entry point. Handles auth flow, flavor/tub UI, preview, add order, save day,
+// tab switching, copy-list, and all event listeners.
 
 import {
   selFlavor1, selFlavor2, selTubType, qty1, qty2,
-  analyticsYear, analyticsMonth,
   setSelFlavor1, setSelFlavor2, setSelTubType, setQty1, setQty2,
   setAnalyticsYear, setAnalyticsMonth,
+  currentUser, setCurrentUser,
 } from './state.js';
 import { FLAVORS, todayKey, monthKey, setDateHeader, showToast, setSyncStatus } from './utils.js';
-import { startOrdersListener, startDaysListener, addOrderToFirestore, saveDayToFirestore } from './firebase.js';
+import {
+  startOrdersListener, startDaysListener, stopListeners,
+  addOrderToFirestore, saveDayToFirestore,
+} from './firebase.js';
 import { renderAnalytics } from './analytics.js';
 import { todayOrders } from './render.js';
+import { watchAuth, login, logout, register } from './auth.js';
 
-// ── Init ───────────────────────────────────────────────────────────────────────
+// ── Auth flow ──────────────────────────────────────────────────────────────────
 
-function init() {
+function showAuthScreen() {
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('app-shell').classList.add('hidden');
+  document.getElementById('loading').classList.add('hidden');
+  // Reset any stale orders data
+  stopListeners();
+}
+
+function showApp(user) {
+  setCurrentUser(user);
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+
+  // Show user's display name in header
+  const nameEl = document.getElementById('user-display-name');
+  if (nameEl) nameEl.textContent = user.displayName || user.email;
+
+  initApp();
+}
+
+window.doLogin = async function() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pw    = document.getElementById('auth-pw').value;
+  const err   = document.getElementById('auth-error');
+  err.textContent = '';
+  if (!email || !pw) { err.textContent = 'Please enter email and password.'; return; }
+  setAuthLoading(true);
+  try {
+    await login(email, pw);
+    // watchAuth fires → showApp()
+  } catch (e) {
+    err.textContent = friendlyAuthError(e.code);
+    setAuthLoading(false);
+  }
+};
+
+window.doRegister = async function() {
+  const name  = document.getElementById('auth-name').value.trim();
+  const email = document.getElementById('auth-email-reg').value.trim();
+  const pw    = document.getElementById('auth-pw2-new').value;
+  const pw2   = document.getElementById('auth-pw2').value;
+  const err   = document.getElementById('auth-error');
+  err.textContent = '';
+  if (!name)        { err.textContent = 'Please enter your name.'; return; }
+  if (!email || !pw){ err.textContent = 'Please enter email and password.'; return; }
+  if (pw !== pw2)   { err.textContent = 'Passwords do not match.'; return; }
+  if (pw.length < 6){ err.textContent = 'Password must be at least 6 characters.'; return; }
+  setAuthLoading(true);
+  try {
+    await register(name, email, pw);
+    // watchAuth fires → showApp()
+  } catch (e) {
+    err.textContent = friendlyAuthError(e.code);
+    setAuthLoading(false);
+  }
+};
+
+window.doLogout = async function() {
+  await logout();
+  setCurrentUser(null);
+  // watchAuth fires → showAuthScreen()
+};
+
+window.showRegisterForm = function() {
+  document.getElementById('login-form').classList.add('hidden');
+  document.getElementById('register-form').classList.remove('hidden');
+  document.getElementById('auth-error').textContent = '';
+};
+
+window.showLoginForm = function() {
+  document.getElementById('register-form').classList.add('hidden');
+  document.getElementById('login-form').classList.remove('hidden');
+  document.getElementById('auth-error').textContent = '';
+};
+
+// Enter-key support
+window.authKeydown = function(e) {
+  if (e.key === 'Enter') {
+    const regForm = document.getElementById('register-form');
+    if (regForm.classList.contains('hidden')) window.doLogin();
+    else window.doRegister();
+  }
+};
+
+function setAuthLoading(on) {
+  const lb = document.getElementById('auth-login-btn');
+  const rb = document.getElementById('auth-register-btn');
+  if (lb) { lb.disabled = on; lb.textContent = on ? 'Signing in…' : 'Sign In'; }
+  if (rb) { rb.disabled = on; rb.textContent = on ? 'Creating account…' : 'Create Account'; }
+}
+
+function friendlyAuthError(code) {
+  switch (code) {
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential': return 'Incorrect email or password.';
+    case 'auth/email-already-in-use': return 'That email is already registered.';
+    case 'auth/invalid-email':        return 'Please enter a valid email address.';
+    case 'auth/weak-password':        return 'Password must be at least 6 characters.';
+    case 'auth/too-many-requests':    return 'Too many attempts. Try again later.';
+    default: return 'Something went wrong. Please try again.';
+  }
+}
+
+// ── App init (runs after login) ────────────────────────────────────────────────
+
+function initApp() {
   const now = new Date();
   setAnalyticsYear(now.getFullYear());
   setAnalyticsMonth(now.getMonth());
 
-  setDateHeader();   // Set clock once — static, no ticking
+  setDateHeader();
   buildFlavorGrids();
-  startOrdersListener();
-  startDaysListener();
+  startOrdersListener(currentUser.uid);
+  startDaysListener(currentUser.uid);
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
@@ -31,6 +141,10 @@ function init() {
 // ── Flavor selection ───────────────────────────────────────────────────────────
 
 function buildFlavorGrids() {
+  // Clear grids in case of re-login
+  ['flavor1-grid', 'flavor2-grid'].forEach(id => {
+    document.getElementById(id).innerHTML = '';
+  });
   ['flavor1-grid', 'flavor2-grid'].forEach((id, isF2) => {
     const grid = document.getElementById(id);
     FLAVORS.forEach(f => {
@@ -63,11 +177,11 @@ function updateFlavorUI() {
     b.className = 'flavor-btn' + (b.dataset.flavor === selFlavor2 ? ' selected-2' : ''));
 
   const show2 = selTubType === 2 && selFlavor1;
-  document.getElementById('mixed-hint').className  = 'mixed-hint' + (show2 ? ' show' : '');
-  document.getElementById('flavor2-field').style.display = show2 ? 'block' : 'none';
+  document.getElementById('mixed-hint').className            = 'mixed-hint' + (show2 ? ' show' : '');
+  document.getElementById('flavor2-field').style.display     = show2 ? 'block' : 'none';
 }
 
-// ── Tub type selector ──────────────────────────────────────────────────────────
+// ── Tub type / qty ─────────────────────────────────────────────────────────────
 
 function selectTubType(type) {
   setSelTubType(selTubType === type ? null : type);
@@ -138,7 +252,7 @@ function updatePreview() {
 // ── Add order ──────────────────────────────────────────────────────────────────
 
 async function addOrder() {
-  if (!selFlavor1 || !selTubType) return;
+  if (!selFlavor1 || !selTubType || !currentUser) return;
   const btn = document.getElementById('add-btn');
   btn.disabled = true;
 
@@ -148,9 +262,6 @@ async function addOrder() {
   const f2           = isMixed ? FLAVORS.find(f => f.name === selFlavor2) : null;
   const tubRevenue   = isMixed ? f1.price + f2.price : selTubType * f1.price;
   const tubProfit    = isMixed ? (f1.price - f1.cost) + (f2.price - f2.cost) : selTubType * (f1.price - f1.cost);
-  const totalRevenue = tubRevenue * qty;
-  const totalProfit  = tubProfit * qty;
-  const totalPieces  = selTubType * qty;
   const customer     = document.getElementById('customer-name').value.trim();
 
   const payload = {
@@ -162,17 +273,17 @@ async function addOrder() {
     flavor2:   isMixed ? selFlavor2 : null,
     tubType:   selTubType,
     tubQty:    qty,
-    pieces:    totalPieces,
+    pieces:    selTubType * qty,
     mixed:     isMixed,
-    revenue:   totalRevenue,
-    profit:    totalProfit,
+    revenue:   tubRevenue * qty,
+    profit:    tubProfit * qty,
     paid:      false,
     payMethod: null,
   };
 
   setSyncStatus('syncing', '⏫ Saving…');
   try {
-    await addOrderToFirestore(payload);
+    await addOrderToFirestore(currentUser.uid, payload);
     showToast('Order saved! 🍩');
   } catch {
     showToast('Saved offline — will sync when connected');
@@ -188,6 +299,7 @@ async function addOrder() {
 // ── Save Day ───────────────────────────────────────────────────────────────────
 
 window.saveDay = async function() {
+  if (!currentUser) return;
   const key = todayKey();
   const tod = todayOrders();
   if (!tod.length) { showToast('No orders today to save!'); return; }
@@ -224,7 +336,7 @@ window.saveDay = async function() {
   };
 
   try {
-    await saveDayToFirestore(existing ? existing.firestoreId : key, snapshot);
+    await saveDayToFirestore(currentUser.uid, existing ? existing.firestoreId : key, snapshot);
     showToast(existing ? 'Day updated in history ✓' : 'Day saved to history! 💾');
   } catch { showToast('Error saving day'); }
 };
@@ -268,4 +380,6 @@ document.getElementById('minus-2').addEventListener('click', () => changeQty(2, 
 document.getElementById('plus-2').addEventListener('click',  () => changeQty(2,  1));
 document.getElementById('add-btn').addEventListener('click', addOrder);
 
-init();
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+
+watchAuth(showApp, showAuthScreen);
