@@ -33,6 +33,7 @@ function showApp(user, type) {
   setAccountType(type || ACCOUNT_TYPE_RESELLER);
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
+  document.getElementById('loading').classList.remove('hidden');  // show while Firestore connects
 
   document.getElementById('user-display-name').textContent = user.displayName || user.email;
 
