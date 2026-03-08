@@ -60,12 +60,13 @@ window.doLogin = async function() {
   const pw   = document.getElementById('auth-pw').value;
   const err  = document.getElementById('auth-error');
   err.textContent = '';
-  if (!name || !pw) { err.textContent = 'Please enter your name and password.'; return; }
+  if (!name) { showAuthError(err, 'Please enter your username.'); return; }
+  if (!pw)   { showAuthError(err, 'Please enter your password.'); return; }
   setAuthLoading(true);
   try {
     await loginByName(name, pw);
   } catch (e) {
-    err.textContent = friendlyAuthError(e.code);
+    showAuthError(err, friendlyAuthError(e.code, 'login'));
     setAuthLoading(false);
   }
 };
@@ -75,17 +76,18 @@ window.doRegister = async function() {
   const pw   = document.getElementById('auth-pw2-new').value;
   const pw2  = document.getElementById('auth-pw2').value;
   const type = document.getElementById('auth-account-type').value;
-  const err  = document.getElementById('auth-error');
+  const err  = document.getElementById('auth-error-reg');
   err.textContent = '';
-  if (!name)         { err.textContent = 'Please enter a username.'; return; }
-  if (!pw)           { err.textContent = 'Please enter a password.'; return; }
-  if (pw !== pw2)    { err.textContent = 'Passwords do not match.'; return; }
-  if (pw.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+  if (!name)            { showAuthError(err, 'Please enter a username.'); return; }
+  if (name.length < 2)  { showAuthError(err, 'Username must be at least 2 characters.'); return; }
+  if (!pw)              { showAuthError(err, 'Please enter a password.'); return; }
+  if (pw.length < 6)    { showAuthError(err, 'Password must be at least 6 characters.'); return; }
+  if (pw !== pw2)       { showAuthError(err, 'Passwords do not match. Please try again.'); return; }
   setAuthLoading(true);
   try {
     await register(name, pw, type);
   } catch (e) {
-    err.textContent = friendlyAuthError(e.code);
+    showAuthError(err, friendlyAuthError(e.code, 'register'));
     setAuthLoading(false);
   }
 };
@@ -100,12 +102,14 @@ window.showRegisterForm = function() {
   document.getElementById('login-form').classList.add('hidden');
   document.getElementById('register-form').classList.remove('hidden');
   document.getElementById('auth-error').textContent = '';
+  document.getElementById('auth-error-reg').textContent = '';
 };
 
 window.showLoginForm = function() {
   document.getElementById('register-form').classList.add('hidden');
   document.getElementById('login-form').classList.remove('hidden');
   document.getElementById('auth-error').textContent = '';
+  document.getElementById('auth-error-reg').textContent = '';
 };
 
 window.authKeydown = function(e) {
@@ -122,16 +126,29 @@ function setAuthLoading(on) {
   if (rb) { rb.disabled = on; rb.textContent = on ? 'Creating account…' : 'Create Account'; }
 }
 
-function friendlyAuthError(code) {
+function showAuthError(el, msg) {
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function friendlyAuthError(code, context) {
   switch (code) {
     case 'auth/user-not-found':
     case 'auth/wrong-password':
-    case 'auth/invalid-credential': return 'Incorrect email or password.';
-    case 'auth/email-already-in-use': return 'That username is already taken.';
-    case 'auth/invalid-email':        return 'Please enter a valid email address.';
-    case 'auth/weak-password':        return 'Password must be at least 6 characters.';
-    case 'auth/too-many-requests':    return 'Too many attempts. Try again later.';
-    default: return 'Something went wrong. Please try again.';
+    case 'auth/invalid-credential':
+      return context === 'login'
+        ? '❌ Username or password is incorrect.'
+        : '❌ Something went wrong. Please try again.';
+    case 'auth/email-already-in-use':
+      return '❌ That username is already taken. Please choose another.';
+    case 'auth/weak-password':
+      return '❌ Password must be at least 6 characters.';
+    case 'auth/too-many-requests':
+      return '⏳ Too many failed attempts. Please wait a moment and try again.';
+    case 'auth/network-request-failed':
+      return '📶 No internet connection. Please check your network.';
+    default:
+      return `❌ Something went wrong (${code}). Please try again.`;
   }
 }
 
@@ -418,6 +435,20 @@ window.copyList = function() {
 
 // ── Event listeners ────────────────────────────────────────────────────────────
 
+// Auth buttons
+document.getElementById('auth-login-btn').addEventListener('click',    window.doLogin);
+document.getElementById('auth-register-btn').addEventListener('click', window.doRegister);
+document.getElementById('auth-login-name').addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
+document.getElementById('auth-pw').addEventListener('keydown',         e => { if (e.key === 'Enter') window.doLogin(); });
+document.getElementById('auth-name').addEventListener('keydown',       e => { if (e.key === 'Enter') window.doRegister(); });
+document.getElementById('auth-pw2-new').addEventListener('keydown',    e => { if (e.key === 'Enter') window.doRegister(); });
+document.getElementById('auth-pw2').addEventListener('keydown',        e => { if (e.key === 'Enter') window.doRegister(); });
+
+// Auth form toggle links
+document.querySelector('.auth-link[data-action="register"]')?.addEventListener('click', window.showRegisterForm);
+document.querySelector('.auth-link[data-action="login"]')?.addEventListener('click',    window.showLoginForm);
+
+// App form
 document.getElementById('customer-name').addEventListener('input', updatePreview);
 document.getElementById('tub-btn-1').addEventListener('click', () => selectTubType(1));
 document.getElementById('tub-btn-2').addEventListener('click', () => selectTubType(2));
@@ -426,6 +457,22 @@ document.getElementById('plus-1').addEventListener('click',  () => changeQty(1, 
 document.getElementById('minus-2').addEventListener('click', () => changeQty(2, -1));
 document.getElementById('plus-2').addEventListener('click',  () => changeQty(2,  1));
 document.getElementById('add-btn').addEventListener('click', addOrder);
+
+// Selling-to toggle
+document.getElementById('ctype-normal')?.addEventListener('click',    () => window.setCustomerType('normal'));
+document.getElementById('ctype-reseller')?.addEventListener('click',  () => window.setCustomerType('reseller'));
+
+// Save day + copy
+document.getElementById('save-day-btn')?.addEventListener('click',    window.saveDay);
+document.getElementById('copy-btn')?.addEventListener('click',        window.copyList);
+
+// Logout
+document.getElementById('logout-btn')?.addEventListener('click',      window.doLogout);
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => window.switchTab(tab.dataset.tab));
+});
 
 // ── Bootstrap ──────────────────────────────────────────────────────────────────
 
