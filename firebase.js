@@ -44,15 +44,21 @@ export function stopListeners() {
 export function startOrdersListener(uid) {
   if (unsubOrders) { unsubOrders(); }
   const q = query(ordersCol(uid), orderBy('createdAt', 'asc'));
+  // Fallback: always hide loading after 4s even if snapshot doesn't fire
+  const hideLoading = () => document.getElementById('loading')?.classList.add('hidden');
+  const fallbackTimer = setTimeout(hideLoading, 4000);
+
   unsubOrders = onSnapshot(q, { includeMetadataChanges: true }, snap => {
+    clearTimeout(fallbackTimer);
     const fromServer = !snap.metadata.fromCache;
     setSyncStatus(fromServer ? 'synced' : 'offline', fromServer ? '☁️ Synced' : '📴 Offline');
     setOrders(snap.docs.map(d => ({ firestoreId: d.id, ...d.data() })));
     renderAll();
-    document.getElementById('loading').classList.add('hidden');
+    hideLoading();
   }, () => {
+    clearTimeout(fallbackTimer);
     setSyncStatus('offline', '⚠️ Error');
-    setTimeout(() => document.getElementById('loading').classList.add('hidden'), 2000);
+    hideLoading();
   });
 }
 
@@ -67,6 +73,16 @@ export function startDaysListener(uid) {
 }
 
 // ── Write operations (all uid-scoped) ─────────────────────────────────────────
+// ── User profile ───────────────────────────────────────────────────────────────
+export const saveUserProfile = (uid, data) =>
+  setDoc(doc(db, 'users', uid, 'profile', 'info'), data, { merge: true });
+
+export const getUserProfile = async (uid) => {
+  const { getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+  const snap = await getDoc(doc(db, 'users', uid, 'profile', 'info'));
+  return snap.exists() ? snap.data() : null;
+};
+
 export const addOrderToFirestore         = (uid, data)      => addDoc(ordersCol(uid), data);
 export const updateOrderInFirestore      = (uid, fid, data) => updateDoc(orderRef(uid, fid), data);
 export const deleteOrderFromFirestore    = (uid, fid)       => deleteDoc(orderRef(uid, fid));
