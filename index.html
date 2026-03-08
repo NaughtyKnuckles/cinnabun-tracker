@@ -61,8 +61,22 @@
         <input class="auth-input" id="auth-pw2-new" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="authKeydown(event)"/>
       </div>
       <div class="auth-field">
+        <label class="auth-label">Account Type</label>
+        <select class="auth-input auth-select" id="auth-account-type">
+          <option value="reseller">🔄 Reseller — I buy &amp; resell buns</option>
+          <option value="seller">🏪 Seller — I produce &amp; sell buns</option>
+        </select>
+      </div>
+      <div class="auth-field">
         <label class="auth-label">Confirm Password</label>
         <input class="auth-input" id="auth-pw2" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="authKeydown(event)"/>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Account Type</label>
+        <select class="auth-input" id="auth-account-type">
+          <option value="customer">👤 Customer — buying for personal use</option>
+          <option value="seller">🏪 Seller / Reseller — I resell CinnaBuns</option>
+        </select>
       </div>
       <div class="auth-error" id="auth-error"></div>
       <button class="auth-btn" id="auth-register-btn" onclick="doRegister()">Create Account</button>
@@ -93,6 +107,7 @@
       <span id="sync-text">Connecting…</span>
     </div>
     <div class="user-pill">
+      <span class="account-badge customer" id="account-type-badge">👤 Customer</span>
       <span class="user-name" id="user-display-name"></span>
       <button class="logout-btn" onclick="doLogout()">Sign out</button>
     </div>
