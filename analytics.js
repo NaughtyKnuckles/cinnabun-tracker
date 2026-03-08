@@ -3,7 +3,7 @@
 // tub-type breakdown, and day history cards with inline editing.
 
 import { savedDays, analyticsYear, analyticsMonth, setAnalyticsYear, setAnalyticsMonth, currentUser, accountType } from './state.js';
-import { ACCOUNT_TYPE_SELLER } from './utils.js';
+import { ACCOUNT_TYPE_MAIN_SELLER } from './utils.js';
 import { MONTH_NAMES, monthKey, todayKey, showToast } from './utils.js';
 import { updateSavedDayInFirestore, deleteSavedDayFromFirestore } from './firebase.js';
 
@@ -13,7 +13,7 @@ export function renderAnalytics() {
   document.getElementById('chart-month-label').textContent = `${MONTH_NAMES[analyticsMonth].slice(0, 3)} ${analyticsYear}`;
 
   const monthDays = savedDays.filter(d => d.month === mk);
-  const isSeller = accountType === ACCOUNT_TYPE_SELLER;
+  const isSeller = accountType === ACCOUNT_TYPE_MAIN_SELLER;
   document.getElementById('m-revenue').textContent = `₱${monthDays.reduce((s, d) => s + d.revenue, 0)}`;
   document.getElementById('m-profit').textContent  = isSeller ? '—' : `₱${monthDays.reduce((s, d) => s + d.profit, 0)}`;
   document.querySelector('.mstat.prof')?.style && (document.querySelector('.mstat.prof').style.display = isSeller ? 'none' : '');
@@ -106,7 +106,7 @@ function buildDayCardHTML(d) {
       <div class="day-detail-row"><span>Orders</span><span>${d.orderCount}</span></div>
       <div class="day-detail-row"><span>Pieces Sold</span><span>${d.pieces}</span></div>
       <div class="day-detail-row"><span>Revenue</span><span>₱${d.revenue}</span></div>
-      ${accountType !== 'seller' ? `<div class="day-detail-row"><span>Profit</span><span>₱${d.profit}</span></div>` : ''}
+      ${accountType !== 'main_seller' ? `<div class="day-detail-row"><span>Profit</span><span>₱${d.profit}</span></div>` : ''}
       ${d.resellerRevenue ? `<div class="day-detail-row"><span>🔄 Reseller sales</span><span>₱${d.resellerRevenue}</span></div>` : ''}
       ${d.normalRevenue ? `<div class="day-detail-row"><span>👤 Normal sales</span><span>₱${d.normalRevenue}</span></div>` : ''}
       <div class="day-detail-row"><span>Cash Collected</span><span>₱${d.cashAmt || 0}</span></div>
