@@ -12,6 +12,12 @@ import { app, db, getEmailByName } from './firebase.js';
 
 export const auth = getAuth(app);
 
+// Firebase requires an email — we generate a hidden one from the username
+function usernameToEmail(username) {
+  const clean = username.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+  return `${clean}@japastry.app`;
+}
+
 export function watchAuth(onLogin, onLogout) {
   onAuthStateChanged(auth, async user => {
     if (user) {
@@ -23,33 +29,42 @@ export function watchAuth(onLogin, onLogout) {
   });
 }
 
-// Login by name — looks up email from nameIndex, then signs in
-export async function loginByName(displayName, password) {
-  const email = await getEmailByName(displayName);
-  if (!email) throw { code: 'auth/user-not-found' };
-  return signInWithEmailAndPassword(auth, email, password);
+// Login by username — converts to fake email and signs in
+export async function loginByName(username, password) {
+  // First try the direct username→email conversion
+  const email = usernameToEmail(username);
+  try {
+    return await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    // Fallback: look up via nameIndex (handles edge cases / old accounts)
+    const indexedEmail = await getEmailByName(username);
+    if (indexedEmail && indexedEmail !== email) {
+      return await signInWithEmailAndPassword(auth, indexedEmail, password);
+    }
+    throw e;
+  }
 }
 
 export const logout = () => signOut(auth);
 
-export const register = async (displayName, email, pw, accountType) => {
-  const { user } = await createUserWithEmailAndPassword(auth, email, pw);
-  await updateProfile(user, { displayName });
+export const register = async (username, password, accountType) => {
+  const email = usernameToEmail(username);
+  const { user } = await createUserWithEmailAndPassword(auth, email, password);
+  await updateProfile(user, { displayName: username });
 
-  // Save profile under users/{uid}/profile/info
+  // Save profile
   await setDoc(doc(db, 'users', user.uid, 'profile', 'info'), {
-    displayName,
+    displayName: username,
     email,
     accountType,
     createdAt: Date.now(),
   });
 
-  // Save name → email index for login-by-name lookup
-  const nameLower = displayName.trim().toLowerCase();
-  await setDoc(doc(db, 'nameIndex', nameLower), {
+  // Save name index for fallback lookup
+  await setDoc(doc(db, 'nameIndex', username.trim().toLowerCase()), {
     email,
-    displayName,
-    nameLower,
+    displayName: username,
+    nameLower: username.trim().toLowerCase(),
   });
 
   return user;
