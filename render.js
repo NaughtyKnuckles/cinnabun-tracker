@@ -1,8 +1,8 @@
 // ── render.js ──────────────────────────────────────────────────────────────────
-// Functions that read state and update the DOM.
-// Covers: summary stats, orders list, daily share list.
+// Reads state, updates DOM. Covers: summary stats, orders list, daily share list.
 
-import { orders, savedDays } from './state.js';
+import { orders } from './state.js';
+import { currentUser } from './state.js';
 import { todayKey, showToast } from './utils.js';
 import { updateOrderInFirestore, deleteOrderFromFirestore } from './firebase.js';
 import { updateSaveDayBtn } from './analytics.js';
@@ -17,7 +17,7 @@ export function renderAll() {
 // ── Summary stats ──────────────────────────────────────────────────────────────
 
 function renderSummary() {
-  const tod = todayOrders();
+  const tod       = todayOrders();
   const rev       = tod.reduce((s, o) => s + o.revenue, 0);
   const prof      = tod.reduce((s, o) => s + o.profit, 0);
   const pcs       = tod.reduce((s, o) => s + o.pieces, 0);
@@ -42,10 +42,10 @@ function renderSummary() {
 // ── Orders list ────────────────────────────────────────────────────────────────
 
 function orderCardHTML(o) {
-  const tubType    = o.tubType || o.pieces;
-  const tubQty     = o.tubQty || 1;
+  const tubType     = o.tubType || o.pieces;
+  const tubQty      = o.tubQty || 1;
   const flavorLabel = o.mixed ? `${o.flavor1} + ${o.flavor2}` : o.flavor1;
-  const tubLabel   = o.mixed
+  const tubLabel    = o.mixed
     ? `${tubQty}×2pc mixed tub${tubQty > 1 ? 's' : ''}`
     : `${tubQty}×${tubType}pc tub${tubQty > 1 ? 's' : ''}`;
   const meta  = `${tubLabel} · ${o.pieces}pc total · ${o.time}`;
@@ -83,7 +83,7 @@ function renderOrdersList() {
   const list = document.getElementById('orders-list');
 
   if (!tod.length) {
-    us.innerHTML = '';
+    us.innerHTML   = '';
     at.textContent = "Today's Orders";
     list.innerHTML = `<div class="orders-empty"><div class="empty-icon">🍩</div><p>No orders yet today.<br>Add your first one!</p></div>`;
     return;
@@ -94,8 +94,8 @@ function renderOrdersList() {
     ? `<div class="section-label">⚠️ Unpaid (${unpaid.length})</div>${unpaid.map(orderCardHTML).join('')}`
     : `<div class="section-label" style="color:var(--green)">✅ All paid for today!</div>`;
 
-  at.textContent  = `All Orders (${tod.length})`;
-  list.innerHTML  = tod.map(orderCardHTML).join('');
+  at.textContent = `All Orders (${tod.length})`;
+  list.innerHTML = tod.map(orderCardHTML).join('');
 }
 
 // ── Daily share list ───────────────────────────────────────────────────────────
@@ -123,10 +123,8 @@ function renderDailyList() {
 
   Object.keys(byTub).sort((a, b) => parseInt(a) - parseInt(b)).forEach(tt => {
     lines.push(`${tt}pc tubs:`);
-    Object.keys(byTub[tt].single).forEach(fl =>
-      lines.push(`  ${fl} - ${byTub[tt].single[fl]}`));
-    Object.keys(byTub[tt].mixed).forEach(pair =>
-      lines.push(`  ${pair} - ${byTub[tt].mixed[pair]}`));
+    Object.keys(byTub[tt].single).forEach(fl => lines.push(`  ${fl} - ${byTub[tt].single[fl]}`));
+    Object.keys(byTub[tt].mixed).forEach(pair => lines.push(`  ${pair} - ${byTub[tt].mixed[pair]}`));
     lines.push('');
   });
 
@@ -148,21 +146,27 @@ function renderDailyList() {
   out.textContent = lines.join('\n');
 }
 
-// ── Exported helpers for inline onclick handlers ───────────────────────────────
+// ── Exported helpers ───────────────────────────────────────────────────────────
 
 export function todayOrders() {
   return orders.filter(o => o.date === todayKey());
 }
 
+// Inline onclick handlers — need window scope, use currentUser for uid
+
 window.markPayment = async function(fid, method, cur) {
+  const uid = currentUser?.uid;
+  if (!uid) return;
   const nm = cur === method ? null : method;
   try {
-    await updateOrderInFirestore(fid, { paid: nm !== null, payMethod: nm });
+    await updateOrderInFirestore(uid, fid, { paid: nm !== null, payMethod: nm });
     showToast(nm ? `Marked as ${nm} ✓` : 'Marked as unpaid');
   } catch { showToast('Error updating payment'); }
 };
 
 window.deleteOrder = async function(fid) {
-  try { await deleteOrderFromFirestore(fid); showToast('Order removed'); }
+  const uid = currentUser?.uid;
+  if (!uid) return;
+  try { await deleteOrderFromFirestore(uid, fid); showToast('Order removed'); }
   catch { showToast('Error'); }
 };
