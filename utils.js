@@ -47,7 +47,7 @@ export function showToast(msg) {
 // ── Header date + build timestamp ─────────────────────────────────────────────
 // Update BUILD_TIMESTAMP every time you push changes so you can confirm
 // the latest code is live in your app.
-const BUILD_TIMESTAMP = 'Mar 8, 2026 — 3:04 AM (GMT+8)';
+const BUILD_TIMESTAMP = 'Mar 8, 2026 — 3:28 PM (GMT+8)';
 
 export function setDateHeader() {
   const d = new Date();
