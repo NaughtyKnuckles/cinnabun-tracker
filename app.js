@@ -71,20 +71,19 @@ window.doLogin = async function() {
 };
 
 window.doRegister = async function() {
-  const name  = document.getElementById('auth-name').value.trim();
-  const email = document.getElementById('auth-email-reg').value.trim();
-  const pw    = document.getElementById('auth-pw2-new').value;
-  const pw2   = document.getElementById('auth-pw2').value;
-  const type  = document.getElementById('auth-account-type').value;
-  const err   = document.getElementById('auth-error');
+  const name = document.getElementById('auth-name').value.trim();
+  const pw   = document.getElementById('auth-pw2-new').value;
+  const pw2  = document.getElementById('auth-pw2').value;
+  const type = document.getElementById('auth-account-type').value;
+  const err  = document.getElementById('auth-error');
   err.textContent = '';
-  if (!name)         { err.textContent = 'Please enter your name.'; return; }
-  if (!email || !pw) { err.textContent = 'Please enter email and password.'; return; }
+  if (!name)         { err.textContent = 'Please enter a username.'; return; }
+  if (!pw)           { err.textContent = 'Please enter a password.'; return; }
   if (pw !== pw2)    { err.textContent = 'Passwords do not match.'; return; }
   if (pw.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
   setAuthLoading(true);
   try {
-    await register(name, email, pw, type);
+    await register(name, pw, type);
   } catch (e) {
     err.textContent = friendlyAuthError(e.code);
     setAuthLoading(false);
@@ -128,7 +127,7 @@ function friendlyAuthError(code) {
     case 'auth/user-not-found':
     case 'auth/wrong-password':
     case 'auth/invalid-credential': return 'Incorrect email or password.';
-    case 'auth/email-already-in-use': return 'That email is already registered.';
+    case 'auth/email-already-in-use': return 'That username is already taken.';
     case 'auth/invalid-email':        return 'Please enter a valid email address.';
     case 'auth/weak-password':        return 'Password must be at least 6 characters.';
     case 'auth/too-many-requests':    return 'Too many attempts. Try again later.';
