@@ -4,7 +4,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {
   getFirestore, collection, addDoc, deleteDoc, doc,
-  updateDoc, setDoc, onSnapshot, query, orderBy,
+  updateDoc, setDoc, onSnapshot, query, orderBy, where, getDocs,
   enableIndexedDbPersistence
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -89,3 +89,17 @@ export const deleteOrderFromFirestore    = (uid, fid)       => deleteDoc(orderRe
 export const saveDayToFirestore          = (uid, key, snap) => setDoc(savedDayRef(uid, key), snap);
 export const updateSavedDayInFirestore   = (uid, fid, data) => updateDoc(savedDayRef(uid, fid), data);
 export const deleteSavedDayFromFirestore = (uid, fid)       => deleteDoc(savedDayRef(uid, fid));
+
+// ── Look up email by display name ──────────────────────────────────────────────
+// Searches users/{uid}/profile/info docs where displayName matches.
+// We store a top-level index at nameIndex/{normalizedName} → { email } for fast lookup.
+export async function getEmailByName(displayName) {
+  const key = displayName.trim().toLowerCase().replace(/\s+/g, '_');
+  try {
+    const snap = await getDocs(
+      query(collection(db, 'nameIndex'), where('nameLower', '==', displayName.trim().toLowerCase()))
+    );
+    if (!snap.empty) return snap.docs[0].data().email;
+  } catch {}
+  return null;
+}
