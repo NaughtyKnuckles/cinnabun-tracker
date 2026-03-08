@@ -1,6 +1,5 @@
 // ── firebase.js ────────────────────────────────────────────────────────────────
-// Firebase initialisation and Firestore real-time listeners.
-// Exports: db, startOrdersListener, startDaysListener
+// All data scoped per-user: users/{uid}/orders  &  users/{uid}/savedDays
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {
@@ -10,7 +9,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 import { setSyncStatus } from './utils.js';
-import { orders, savedDays, setOrders, setSavedDays } from './state.js';
+import { setOrders, setSavedDays } from './state.js';
 import { renderAll } from './render.js';
 import { renderAnalytics, updateSaveDayBtn } from './analytics.js';
 
@@ -23,13 +22,29 @@ const firebaseConfig = {
   appId:             "1:403071674919:web:3612d2be8e68f425a3bc02"
 };
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const app = initializeApp(firebaseConfig);
+export const db  = getFirestore(app);
 enableIndexedDbPersistence(db).catch(() => {});
 
-export function startOrdersListener() {
-  const q = query(collection(db, 'orders'), orderBy('createdAt', 'asc'));
-  onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+// ── Per-user collection refs ───────────────────────────────────────────────────
+const ordersCol    = uid        => collection(db, 'users', uid, 'orders');
+const savedDaysCol = uid        => collection(db, 'users', uid, 'savedDays');
+const orderRef     = (uid, fid) => doc(db, 'users', uid, 'orders',    fid);
+const savedDayRef  = (uid, fid) => doc(db, 'users', uid, 'savedDays', fid);
+
+// ── Listener handles ──────────────────────────────────────────────────────────
+let unsubOrders = null;
+let unsubDays   = null;
+
+export function stopListeners() {
+  if (unsubOrders) { unsubOrders(); unsubOrders = null; }
+  if (unsubDays)   { unsubDays();   unsubDays   = null; }
+}
+
+export function startOrdersListener(uid) {
+  if (unsubOrders) { unsubOrders(); }
+  const q = query(ordersCol(uid), orderBy('createdAt', 'asc'));
+  unsubOrders = onSnapshot(q, { includeMetadataChanges: true }, snap => {
     const fromServer = !snap.metadata.fromCache;
     setSyncStatus(fromServer ? 'synced' : 'offline', fromServer ? '☁️ Synced' : '📴 Offline');
     setOrders(snap.docs.map(d => ({ firestoreId: d.id, ...d.data() })));
@@ -41,37 +56,20 @@ export function startOrdersListener() {
   });
 }
 
-export function startDaysListener() {
-  const q = query(collection(db, 'savedDays'), orderBy('dateKey', 'asc'));
-  onSnapshot(q, (snap) => {
+export function startDaysListener(uid) {
+  if (unsubDays) { unsubDays(); }
+  const q = query(savedDaysCol(uid), orderBy('dateKey', 'asc'));
+  unsubDays = onSnapshot(q, snap => {
     setSavedDays(snap.docs.map(d => ({ firestoreId: d.id, ...d.data() })));
     renderAnalytics();
     updateSaveDayBtn();
   });
 }
 
-// ── Write operations ───────────────────────────────────────────────────────────
-
-export async function addOrderToFirestore(data) {
-  return addDoc(collection(db, 'orders'), data);
-}
-
-export async function updateOrderInFirestore(fid, data) {
-  return updateDoc(doc(db, 'orders', fid), data);
-}
-
-export async function deleteOrderFromFirestore(fid) {
-  return deleteDoc(doc(db, 'orders', fid));
-}
-
-export async function saveDayToFirestore(key, snapshot) {
-  return setDoc(doc(db, 'savedDays', key), snapshot);
-}
-
-export async function updateSavedDayInFirestore(fid, data) {
-  return updateDoc(doc(db, 'savedDays', fid), data);
-}
-
-export async function deleteSavedDayFromFirestore(fid) {
-  return deleteDoc(doc(db, 'savedDays', fid));
-}
+// ── Write operations (all uid-scoped) ─────────────────────────────────────────
+export const addOrderToFirestore         = (uid, data)      => addDoc(ordersCol(uid), data);
+export const updateOrderInFirestore      = (uid, fid, data) => updateDoc(orderRef(uid, fid), data);
+export const deleteOrderFromFirestore    = (uid, fid)       => deleteDoc(orderRef(uid, fid));
+export const saveDayToFirestore          = (uid, key, snap) => setDoc(savedDayRef(uid, key), snap);
+export const updateSavedDayInFirestore   = (uid, fid, data) => updateDoc(savedDayRef(uid, fid), data);
+export const deleteSavedDayFromFirestore = (uid, fid)       => deleteDoc(savedDayRef(uid, fid));
