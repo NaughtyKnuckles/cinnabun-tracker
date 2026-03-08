@@ -2,7 +2,7 @@
 // Renders the Analytics tab: monthly stats, revenue chart,
 // tub-type breakdown, and day history cards with inline editing.
 
-import { savedDays, analyticsYear, analyticsMonth, setAnalyticsYear, setAnalyticsMonth } from './state.js';
+import { savedDays, analyticsYear, analyticsMonth, setAnalyticsYear, setAnalyticsMonth, currentUser } from './state.js';
 import { MONTH_NAMES, monthKey, todayKey, showToast } from './utils.js';
 import { updateSavedDayInFirestore, deleteSavedDayFromFirestore } from './firebase.js';
 
@@ -22,8 +22,6 @@ export function renderAnalytics() {
   renderDayHistory(monthDays);
 }
 
-// ── Revenue chart ──────────────────────────────────────────────────────────────
-
 function renderRevenueChart(days) {
   const chart = document.getElementById('revenue-chart');
   if (!days.length) {
@@ -41,8 +39,6 @@ function renderRevenueChart(days) {
     </div>`;
   }).join('');
 }
-
-// ── Tub-type breakdown ─────────────────────────────────────────────────────────
 
 function renderPieceBreakdown(days) {
   const container = document.getElementById('piece-breakdown-rows');
@@ -76,19 +72,15 @@ function renderPieceBreakdown(days) {
   }).join('');
 }
 
-// ── Day history cards ──────────────────────────────────────────────────────────
-
 function renderDayHistory(days) {
   const container = document.getElementById('day-history-list');
   if (!days.length) {
     container.innerHTML = `<div class="hist-empty"><div class="empty-icon">📊</div><p>No saved days yet.<br>Use "Save Today to History"<br>on the Add tab.</p></div>`;
     return;
   }
-  const sorted = [...days].sort((a, b) => b.dateKey.localeCompare(a.dateKey));
-  container.innerHTML = sorted.map(d => buildDayCardHTML(d)).join('');
+  container.innerHTML = [...days].sort((a, b) => b.dateKey.localeCompare(a.dateKey)).map(buildDayCardHTML).join('');
 }
 
-// Builds the VIEW state of a day card
 function buildDayCardHTML(d) {
   const parts     = d.dateKey.split('-');
   const dateObj   = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
@@ -125,7 +117,6 @@ function buildDayCardHTML(d) {
   </div>`;
 }
 
-// Builds the EDIT state — replaces day-body content in-place
 function buildDayEditHTML(d) {
   const pieceCounts = d.pieceCounts || {};
   const pcFields = Object.keys(pieceCounts).sort((a, b) => parseInt(a) - parseInt(b))
@@ -136,38 +127,14 @@ function buildDayEditHTML(d) {
       </div>`).join('');
 
   return `<div class="day-edit-form" data-fid="${d.firestoreId}">
-    <div class="day-edit-row">
-      <label>Orders</label>
-      <input class="day-edit-input" type="number" min="0" data-field="orderCount" value="${d.orderCount}"/>
-    </div>
-    <div class="day-edit-row">
-      <label>Pieces Sold</label>
-      <input class="day-edit-input" type="number" min="0" data-field="pieces" value="${d.pieces}"/>
-    </div>
-    <div class="day-edit-row">
-      <label>Revenue (₱)</label>
-      <input class="day-edit-input" type="number" min="0" data-field="revenue" value="${d.revenue}"/>
-    </div>
-    <div class="day-edit-row">
-      <label>Profit (₱)</label>
-      <input class="day-edit-input" type="number" min="0" data-field="profit" value="${d.profit}"/>
-    </div>
-    <div class="day-edit-row">
-      <label>Cash Collected (₱)</label>
-      <input class="day-edit-input" type="number" min="0" data-field="cashAmt" value="${d.cashAmt || 0}"/>
-    </div>
-    <div class="day-edit-row">
-      <label>GCash Collected (₱)</label>
-      <input class="day-edit-input" type="number" min="0" data-field="gcashAmt" value="${d.gcashAmt || 0}"/>
-    </div>
-    <div class="day-edit-row">
-      <label>Unpaid at Save (₱)</label>
-      <input class="day-edit-input" type="number" min="0" data-field="unpaidAmt" value="${d.unpaidAmt || 0}"/>
-    </div>
-    <div class="day-edit-row">
-      <label>Best Flavor</label>
-      <input class="day-edit-input" type="text" data-field="bestFlavor" value="${d.bestFlavor || ''}"/>
-    </div>
+    <div class="day-edit-row"><label>Orders</label><input class="day-edit-input" type="number" min="0" data-field="orderCount" value="${d.orderCount}"/></div>
+    <div class="day-edit-row"><label>Pieces Sold</label><input class="day-edit-input" type="number" min="0" data-field="pieces" value="${d.pieces}"/></div>
+    <div class="day-edit-row"><label>Revenue (₱)</label><input class="day-edit-input" type="number" min="0" data-field="revenue" value="${d.revenue}"/></div>
+    <div class="day-edit-row"><label>Profit (₱)</label><input class="day-edit-input" type="number" min="0" data-field="profit" value="${d.profit}"/></div>
+    <div class="day-edit-row"><label>Cash Collected (₱)</label><input class="day-edit-input" type="number" min="0" data-field="cashAmt" value="${d.cashAmt || 0}"/></div>
+    <div class="day-edit-row"><label>GCash Collected (₱)</label><input class="day-edit-input" type="number" min="0" data-field="gcashAmt" value="${d.gcashAmt || 0}"/></div>
+    <div class="day-edit-row"><label>Unpaid at Save (₱)</label><input class="day-edit-input" type="number" min="0" data-field="unpaidAmt" value="${d.unpaidAmt || 0}"/></div>
+    <div class="day-edit-row"><label>Best Flavor</label><input class="day-edit-input" type="text" data-field="bestFlavor" value="${d.bestFlavor || ''}"/></div>
     ${pcFields}
     <div class="day-edit-actions">
       <button class="day-save-btn" onclick="saveDayEdit('${d.firestoreId}')">💾 Save Changes</button>
@@ -176,11 +143,8 @@ function buildDayEditHTML(d) {
   </div>`;
 }
 
-// ── Window-level handlers ──────────────────────────────────────────────────────
-
 window.toggleDay = function(header) {
   const body = header.nextElementSibling;
-  // Don't collapse while editing
   if (body.querySelector('.day-edit-form')) return;
   const chevron = header.querySelector('.day-chevron');
   chevron.classList.toggle('open', body.classList.toggle('open'));
@@ -201,7 +165,6 @@ window.cancelDayEdit = function(fid) {
   const d = savedDays.find(d => d.firestoreId === fid);
   if (!d) return;
   const card = document.querySelector(`.day-card[data-fid="${fid}"]`);
-  // Replace entire card with fresh view, then re-open
   card.outerHTML = buildDayCardHTML(d);
   const newCard = document.querySelector(`.day-card[data-fid="${fid}"]`);
   newCard.querySelector('.day-body').classList.add('open');
@@ -209,13 +172,15 @@ window.cancelDayEdit = function(fid) {
 };
 
 window.saveDayEdit = async function(fid) {
+  const uid = currentUser?.uid;
+  if (!uid) return;
   const d = savedDays.find(d => d.firestoreId === fid);
   if (!d) return;
 
-  const form   = document.querySelector(`.day-edit-form[data-fid="${fid}"]`);
-  const inputs = form.querySelectorAll('.day-edit-input');
-  const updates  = {};
-  const newPc    = { ...(d.pieceCounts || {}) };
+  const form    = document.querySelector(`.day-edit-form[data-fid="${fid}"]`);
+  const inputs  = form.querySelectorAll('.day-edit-input');
+  const updates = {};
+  const newPc   = { ...(d.pieceCounts || {}) };
 
   inputs.forEach(input => {
     const field = input.dataset.field;
@@ -234,9 +199,8 @@ window.saveDayEdit = async function(fid) {
   saveBtn.textContent = 'Saving…';
 
   try {
-    await updateSavedDayInFirestore(fid, updates);
+    await updateSavedDayInFirestore(uid, fid, updates);
     showToast('Day updated ✓');
-    // Firestore onSnapshot will re-render the list automatically
   } catch {
     showToast('Error saving changes');
     saveBtn.disabled    = false;
@@ -245,13 +209,13 @@ window.saveDayEdit = async function(fid) {
 };
 
 window.deleteDay = async function(fid) {
+  const uid = currentUser?.uid;
+  if (!uid) return;
   if (!confirm('Delete this saved day? This cannot be undone.')) return;
   try {
-    await deleteSavedDayFromFirestore(fid);
+    await deleteSavedDayFromFirestore(uid, fid);
     showToast('Day deleted');
-  } catch {
-    showToast('Error deleting day');
-  }
+  } catch { showToast('Error deleting day'); }
 };
 
 window.changeMonth = function(dir) {
@@ -263,8 +227,6 @@ window.changeMonth = function(dir) {
   setAnalyticsYear(y);
   renderAnalytics();
 };
-
-// ── Save day button label ──────────────────────────────────────────────────────
 
 export function updateSaveDayBtn() {
   const key   = todayKey();
