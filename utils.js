@@ -61,7 +61,7 @@ export function showToast(msg) {
 // ── Header date + build timestamp ─────────────────────────────────────────────
 // Update BUILD_TIMESTAMP every time you push changes so you can confirm
 // the latest code is live in your app.
-const BUILD_TIMESTAMP = 'Mar 8, 2026 — 4:26 PM (GMT+8)'port function setDateHeader() {
+const BUILD_TIMESTAMP = 'Mar 8, 2026 — 4:34 PM (GMT+8)'port function setDateHeader() {
   const d = new Date();
   document.getElementById('hdr-day').textContent   = d.getDate();
   document.getElementById('hdr-month').textContent = d.toLocaleDateString('en-PH', { month: 'short', year: 'numeric' });
