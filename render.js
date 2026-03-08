@@ -1,8 +1,8 @@
 // ── render.js ──────────────────────────────────────────────────────────────────
 // Reads state, updates DOM. Covers: summary stats, orders list, daily share list.
 
-import { orders } from './state.js';
-import { currentUser } from './state.js';
+import { orders, currentUser, accountType } from './state.js';
+import { ACCOUNT_TYPE_SELLER } from './utils.js';
 import { todayKey, showToast } from './utils.js';
 import { updateOrderInFirestore, deleteOrderFromFirestore } from './firebase.js';
 import { updateSaveDayBtn } from './analytics.js';
@@ -32,11 +32,14 @@ function renderSummary() {
     ? Object.keys(tally).reduce((a, b) => tally[a] > tally[b] ? a : b)
     : '—';
 
+  const isSeller = accountType === ACCOUNT_TYPE_SELLER;
   document.getElementById('sum-revenue').textContent = `₱${rev}`;
-  document.getElementById('sum-profit').textContent  = `₱${prof}`;
+  document.getElementById('sum-profit').textContent  = isSeller ? '—' : `₱${prof}`;
   document.getElementById('sum-pieces').textContent  = pcs;
   document.getElementById('sum-best').textContent    = best;
   document.getElementById('sum-unpaid').textContent  = `₱${unpaidAmt}`;
+  // Show/hide profit stat card
+  document.querySelectorAll('.stat.profit').forEach(el => el.style.display = isSeller ? 'none' : '');
 }
 
 // ── Orders list ────────────────────────────────────────────────────────────────
@@ -49,6 +52,10 @@ function orderCardHTML(o) {
     ? `${tubQty}×2pc mixed tub${tubQty > 1 ? 's' : ''}`
     : `${tubQty}×${tubType}pc tub${tubQty > 1 ? 's' : ''}`;
   const meta  = `${tubLabel} · ${o.pieces}pc total · ${o.time}`;
+  const ctBadge = o.customerType === 'reseller'
+    ? `<span class="order-ctype reseller-ctype">🔄 Reseller</span>`
+    : `<span class="order-ctype normal-ctype">👤 Normal</span>`;
+  const isSeller = accountType === ACCOUNT_TYPE_SELLER;
   const cHTML = o.customer ? `<div class="order-customer">👤 ${o.customer}</div>` : '';
   const pm    = o.payMethod || null;
   const badge = o.paid
@@ -60,12 +67,12 @@ function orderCardHTML(o) {
     <div class="order-top">
       <div class="order-dot"></div>
       <div class="order-info">
-        <div class="order-name">${flavorLabel}</div>${cHTML}
+        <div class="order-name">${flavorLabel} ${ctBadge}</div>${cHTML}
         <div class="order-meta">${meta}</div>
       </div>
       <div class="order-prices">
         <div class="order-revenue">₱${o.revenue}</div>
-        <div class="order-profit">+₱${o.profit}</div>
+        ${!isSeller ? `<div class="order-profit">+₱${o.profit}</div>` : ''}
       </div>
       <div class="order-top-right">
         ${delivered ? '<span class="delivered-badge">🚚 Delivered</span>' : ''}
