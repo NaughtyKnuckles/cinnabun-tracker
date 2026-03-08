@@ -1,12 +1,26 @@
 // ── utils.js ───────────────────────────────────────────────────────────────────
 // App-wide constants, date helpers, toast, and sync-pill helpers.
 
+// Retail prices — for normal (end) customers
 export const FLAVORS = [
-  { name: 'Original',  price: 75, cost: 60 },
-  { name: 'Almond',    price: 90, cost: 75 },
-  { name: 'Oreo',      price: 90, cost: 75 },
-  { name: 'Blueberry', price: 90, cost: 75 },
+  { name: 'Original',  price: 75, cost: 45 },
+  { name: 'Almond',    price: 90, cost: 60 },
+  { name: 'Oreo',      price: 90, cost: 60 },
+  { name: 'Blueberry', price: 90, cost: 60 },
 ];
+
+// Reseller prices — what you charge reseller customers
+export const RESELLER_FLAVORS = [
+  { name: 'Original',  price: 60, cost: 45 },
+  { name: 'Almond',    price: 75, cost: 60 },
+  { name: 'Oreo',      price: 75, cost: 60 },
+  { name: 'Blueberry', price: 75, cost: 60 },
+];
+
+/** Returns the correct flavor list based on customer type */
+export function getFlavors(customerType) {
+  return customerType === 'reseller' ? RESELLER_FLAVORS : FLAVORS;
+}
 
 export const MONTH_NAMES = [
   'January','February','March','April','May','June',
@@ -47,7 +61,7 @@ export function showToast(msg) {
 // ── Header date + build timestamp ─────────────────────────────────────────────
 // Update BUILD_TIMESTAMP every time you push changes so you can confirm
 // the latest code is live in your app.
-const BUILD_TIMESTAMP = 'Mar 8, 2026 — 3:41 PM (GMT+8)';
+const BUILD_TIMESTAMP = 'Mar 8, 2026 — 3:55 PM (GMT+8)';
 
 export function setDateHeader() {
   const d = new Date();
