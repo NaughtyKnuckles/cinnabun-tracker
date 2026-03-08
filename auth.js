@@ -7,11 +7,10 @@ import {
   onAuthStateChanged,
   updateProfile,
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { app } from './firebase.js';
+import { doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { app, db } from './firebase.js';  // reuse the same app + db instance
 
 export const auth = getAuth(app);
-const db2 = getFirestore(app); // same instance, just for profile reads
 
 /** Calls onLogin(user, accountType) on sign-in, onLogout() on sign-out. */
 export function watchAuth(onLogin, onLogout) {
@@ -31,11 +30,10 @@ export const logout = ()          => signOut(auth);
 export const register = async (displayName, email, pw, accountType) => {
   const { user } = await createUserWithEmailAndPassword(auth, email, pw);
   await updateProfile(user, { displayName });
-  // Save profile (accountType) to Firestore under users/{uid}/profile/info
-  await setDoc(doc(db2, 'users', user.uid, 'profile', 'info'), {
+  await setDoc(doc(db, 'users', user.uid, 'profile', 'info'), {
     displayName,
     email,
-    accountType,  // 'reseller' | 'seller'
+    accountType,
     createdAt: Date.now(),
   });
   return user;
@@ -43,9 +41,9 @@ export const register = async (displayName, email, pw, accountType) => {
 
 export async function getUserAccountType(uid) {
   try {
-    const snap = await getDoc(doc(db2, 'users', uid, 'profile', 'info'));
+    const snap = await getDoc(doc(db, 'users', uid, 'profile', 'info'));
     return snap.exists() ? (snap.data().accountType || 'reseller') : 'reseller';
   } catch {
-    return 'reseller';
+    return 'reseller';  // default gracefully on any error
   }
 }
