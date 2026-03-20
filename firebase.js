@@ -8,7 +8,7 @@ import {
   enableIndexedDbPersistence
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-import { setSyncStatus } from './utils.js';
+import { setSyncStatus, normalizeOrder } from './utils.js';
 import { setOrders, setSavedDays } from './state.js';
 import { renderAll } from './render.js';
 import { renderAnalytics, updateSaveDayBtn } from './analytics.js';
@@ -52,7 +52,7 @@ export function startOrdersListener(uid) {
     clearTimeout(fallbackTimer);
     const fromServer = !snap.metadata.fromCache;
     setSyncStatus(fromServer ? 'synced' : 'offline', fromServer ? '☁️ Synced' : '📴 Offline');
-    setOrders(snap.docs.map(d => ({ firestoreId: d.id, ...d.data() })));
+    setOrders(snap.docs.map(d => normalizeOrder({ firestoreId: d.id, ...d.data() })));
     renderAll();
     hideLoading();
   }, () => {

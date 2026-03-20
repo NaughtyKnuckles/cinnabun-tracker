@@ -192,7 +192,30 @@
 
 <!-- PAGE: Orders -->
 <div class="page" id="page-orders">
-  <div id="unpaid-section"></div>
+  <div class="orders-toolbar">
+    <input id="order-search" class="order-filter-input" type="search" placeholder="Search customer or flavor..." />
+    <div class="orders-filter-row">
+      <select id="order-status-filter" class="order-filter-select">
+        <option value="all">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="baking">Baking</option>
+        <option value="ready">Ready</option>
+        <option value="delivered">Delivered</option>
+      </select>
+      <select id="order-payment-filter" class="order-filter-select">
+        <option value="all">All Payments</option>
+        <option value="paid">Paid</option>
+        <option value="unpaid">Unpaid</option>
+      </select>
+      <select id="order-sort" class="order-filter-select">
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="price_desc">Price ↓</option>
+        <option value="price_asc">Price ↑</option>
+        <option value="customer_asc">Customer A→Z</option>
+      </select>
+    </div>
+  </div>
   <div class="card-title" id="all-orders-title">Today's Orders</div>
   <div id="orders-list"></div>
 </div>
