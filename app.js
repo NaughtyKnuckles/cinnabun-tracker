@@ -1,8 +1,9 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/app.js b/app.js
-index 02773ee7b5e55966c8aa0ab3a8da06824f8acc4f..1d586baba57e6306064bb153ebd0d119e3c409b9 100644
+index 02773ee7b5e55966c8aa0ab3a8da06824f8acc4f..4f688d7331b4e245c5e2ba84b225876c4539475e 100644
 --- a/app.js
 +++ b/app.js
-@@ -1,479 +1,409 @@
+@@ -1,479 +1,412 @@
 -// ── app.js ─────────────────────────────────────────────────────────────────────
  import {
    selFlavor1, selFlavor2, selTubType, qty1, qty2,
@@ -80,7 +81,8 @@ index 02773ee7b5e55966c8aa0ab3a8da06824f8acc4f..1d586baba57e6306064bb153ebd0d119
 -    setAuthLoading(false);
 -  }
 -};
--
++  document.querySelectorAll('.stat.profit').forEach(el => (el.style.display = isMain ? 'none' : ''));
+ 
 -window.doRegister = async function() {
 -  const name = document.getElementById('auth-name').value.trim();
 -  const pw   = document.getElementById('auth-pw2-new').value;
@@ -99,9 +101,13 @@ index 02773ee7b5e55966c8aa0ab3a8da06824f8acc4f..1d586baba57e6306064bb153ebd0d119
 -  } catch (e) {
 -    showAuthError(err, friendlyAuthError(e.code, 'register'));
 -    setAuthLoading(false);
--  }
++  const sellingToBar = document.querySelector('.selling-to-bar');
++  if (sellingToBar) {
++    sellingToBar.classList.toggle('hidden', !isMain);
++    sellingToBar.style.display = isMain ? 'flex' : 'none';
+   }
 -};
--
+ 
 -window.doLogout = async function() {
 -  await logout();
 -  setCurrentUser(null);
@@ -114,17 +120,14 @@ index 02773ee7b5e55966c8aa0ab3a8da06824f8acc4f..1d586baba57e6306064bb153ebd0d119
 -  document.getElementById('auth-error').textContent = '';
 -  document.getElementById('auth-error-reg').textContent = '';
 -};
-+  document.querySelectorAll('.stat.profit').forEach(el => (el.style.display = isMain ? 'none' : ''));
- 
+-
 -window.showLoginForm = function() {
 -  document.getElementById('register-form').classList.add('hidden');
 -  document.getElementById('login-form').classList.remove('hidden');
 -  document.getElementById('auth-error').textContent = '';
 -  document.getElementById('auth-error-reg').textContent = '';
 -};
-+  const sellingToBar = document.querySelector('.selling-to-bar');
-+  if (sellingToBar) sellingToBar.style.display = isMain ? 'flex' : 'none';
- 
+-
 -window.authKeydown = function(e) {
 -  if (e.key !== 'Enter') return;
 -  const regForm = document.getElementById('register-form');
@@ -711,3 +714,6 @@ index 02773ee7b5e55966c8aa0ab3a8da06824f8acc4f..1d586baba57e6306064bb153ebd0d119
 +document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => window.switchTab(tab.dataset.tab)));
  
  watchAuth(showApp, showAuthScreen);
+ 
+EOF
+)
