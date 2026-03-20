@@ -60,8 +60,8 @@ function applyAccountTypeUI() {
 }
 
 function setAuthLoading(on) {
-  const lb = document.getElementById('auth-login-btn');
-  const rb = document.getElementById('auth-register-btn');
+  const lb = byId('auth-login-btn');
+  const rb = byId('auth-register-btn');
   if (lb) { lb.disabled = on; lb.textContent = on ? 'Signing in…' : 'Sign In'; }
   if (rb) { rb.disabled = on; rb.textContent = on ? 'Creating account…' : 'Create Account'; }
 }
@@ -136,8 +136,8 @@ window.setCustomerType = function (type) {
 };
 
 function updateCustomerTypeUI() {
-  const btnNormal = document.getElementById('ctype-normal');
-  const btnReseller = document.getElementById('ctype-reseller');
+  const btnNormal = byId('ctype-normal');
+  const btnReseller = byId('ctype-reseller');
   const isMain = accountType === ACCOUNT_TYPE_MAIN_SELLER;
   if (!btnNormal || !btnReseller) return;
 
@@ -154,7 +154,8 @@ function updateCustomerTypeUI() {
 
 function buildFlavorGrids() {
   ['flavor1-grid', 'flavor2-grid'].forEach((id, idx) => {
-    const grid = document.getElementById(id);
+    const grid = byId(id);
+    if (!grid) return;
     grid.innerHTML = '';
     FLAVORS.forEach(f => {
       const btn = document.createElement('button');
@@ -356,7 +357,10 @@ function persistFormState() {
 function restoreFormState() {
   try {
     const raw = localStorage.getItem(FORM_STORAGE_KEY);
-    if (!raw) return;
+    if (!raw) {
+      updateTubUI(); updateFlavorUI(); updatePreview();
+      return;
+    }
     const v = JSON.parse(raw);
     setSelFlavor1(v.selFlavor1 || null);
     setSelFlavor2(v.selFlavor2 || null);
@@ -367,31 +371,39 @@ function restoreFormState() {
   updateTubUI(); updateFlavorUI(); updatePreview();
 }
 
+function byId(id) {
+  return document.getElementById(id);
+}
+
+function safeAddEvent(id, event, handler) {
+  byId(id)?.addEventListener(event, handler);
+}
+
 // listeners
-document.getElementById('auth-login-btn').addEventListener('click', window.doLogin);
-document.getElementById('auth-register-btn').addEventListener('click', window.doRegister);
-document.getElementById('auth-login-name').addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
-document.getElementById('auth-pw').addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
-document.getElementById('auth-name').addEventListener('keydown', e => { if (e.key === 'Enter') window.doRegister(); });
-document.getElementById('auth-pw2-new').addEventListener('keydown', e => { if (e.key === 'Enter') window.doRegister(); });
-document.getElementById('auth-pw2').addEventListener('keydown', e => { if (e.key === 'Enter') window.doRegister(); });
+safeAddEvent('auth-login-btn', 'click', window.doLogin);
+safeAddEvent('auth-register-btn', 'click', window.doRegister);
+safeAddEvent('auth-login-name', 'keydown', e => { if (e.key === 'Enter') window.doLogin(); });
+safeAddEvent('auth-pw', 'keydown', e => { if (e.key === 'Enter') window.doLogin(); });
+safeAddEvent('auth-name', 'keydown', e => { if (e.key === 'Enter') window.doRegister(); });
+safeAddEvent('auth-pw2-new', 'keydown', e => { if (e.key === 'Enter') window.doRegister(); });
+safeAddEvent('auth-pw2', 'keydown', e => { if (e.key === 'Enter') window.doRegister(); });
 document.querySelector('.auth-link[data-action="register"]')?.addEventListener('click', window.showRegisterForm);
 document.querySelector('.auth-link[data-action="login"]')?.addEventListener('click', window.showLoginForm);
 
-document.getElementById('customer-name').addEventListener('input', () => { persistFormState(); updatePreview(); });
-document.getElementById('tub-btn-1').addEventListener('click', () => selectTubType(1));
-document.getElementById('tub-btn-2').addEventListener('click', () => selectTubType(2));
-document.getElementById('minus-1').addEventListener('click', () => changeQty(1, -1));
-document.getElementById('plus-1').addEventListener('click', () => changeQty(1, 1));
-document.getElementById('minus-2').addEventListener('click', () => changeQty(2, -1));
-document.getElementById('plus-2').addEventListener('click', () => changeQty(2, 1));
-document.getElementById('add-btn').addEventListener('click', addOrder);
+safeAddEvent('customer-name', 'input', () => { persistFormState(); updatePreview(); });
+safeAddEvent('tub-btn-1', 'click', () => selectTubType(1));
+safeAddEvent('tub-btn-2', 'click', () => selectTubType(2));
+safeAddEvent('minus-1', 'click', () => changeQty(1, -1));
+safeAddEvent('plus-1', 'click', () => changeQty(1, 1));
+safeAddEvent('minus-2', 'click', () => changeQty(2, -1));
+safeAddEvent('plus-2', 'click', () => changeQty(2, 1));
+safeAddEvent('add-btn', 'click', addOrder);
 
 document.getElementById('ctype-normal')?.addEventListener('click', () => window.setCustomerType('normal'));
 document.getElementById('ctype-reseller')?.addEventListener('click', () => window.setCustomerType('reseller'));
-document.getElementById('save-day-btn')?.addEventListener('click', window.saveDay);
-document.getElementById('copy-btn')?.addEventListener('click', window.copyList);
-document.getElementById('logout-btn')?.addEventListener('click', window.doLogout);
+safeAddEvent('save-day-btn', 'click', window.saveDay);
+safeAddEvent('copy-btn', 'click', window.copyList);
+safeAddEvent('logout-btn', 'click', window.doLogout);
 document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => window.switchTab(tab.dataset.tab)));
 
 watchAuth(showApp, showAuthScreen);
