@@ -488,3 +488,21 @@ body{min-height:100%;display:flex;flex-direction:column;max-width:480px;margin:0
   background: rgba(200,101,10,.15); border-color: var(--amber); color: var(--amber);
 }
 .ctype-btn:active { opacity: .7; }
+
+/* Orders toolbar */
+.orders-toolbar{display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px}
+.orders-filter-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.order-filter-input,.order-filter-select{background:var(--bg3);border:1px solid var(--border);color:var(--cream);border-radius:8px;padding:9px 10px;font-size:12px}
+.order-filter-input:focus,.order-filter-select:focus{outline:none;border-color:var(--amber)}
+
+.order-controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;border-top:1px solid var(--border);padding-top:8px}
+.status-select{background:var(--bg3);color:var(--cream);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:11px}
+.status-chip{font-size:10px;color:var(--amber);font-weight:600}
+
+button,.flavor-btn,.tab,.pay-btn,.copy-btn,.save-day-btn,.delivery-btn,.day-edit-btn,.del-btn,.month-nav-btn,.auth-btn,.logout-btn{transition:all .2s ease}
+button:hover,.flavor-btn:hover,.tab:hover{filter:brightness(1.08)}
+
+@media (max-width:420px){
+  .orders-filter-row{grid-template-columns:1fr}
+  .order-controls-grid{grid-template-columns:1fr}
+}
