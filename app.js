@@ -341,7 +341,7 @@ function bindOrderFilters() {
   const status = document.getElementById('order-status-filter');
   const pay = document.getElementById('order-payment-filter');
   const sort = document.getElementById('order-sort');
-  if (!q) return;
+  if (!q || !status || !pay || !sort) return;
 
   q.addEventListener('input', e => { setOrderFilters({ query: e.target.value.trim().toLowerCase() }); renderAll(); });
   status.addEventListener('change', e => { setOrderFilters({ status: e.target.value }); renderAll(); });
@@ -368,7 +368,6 @@ function restoreFormState() {
 }
 
 // listeners
-['auth-login-btn','auth-register-btn','auth-login-name','auth-pw','auth-name','auth-pw2-new','auth-pw2'].forEach(() => {});
 document.getElementById('auth-login-btn').addEventListener('click', window.doLogin);
 document.getElementById('auth-register-btn').addEventListener('click', window.doRegister);
 document.getElementById('auth-login-name').addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
