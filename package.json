@@ -1,0 +1,17 @@
+{
+  "name": "cinnabun-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cinnamon bun order tracker web app",
+  "type": "module",
+  "scripts": {
+    "start": "npx serve .",
+    "check": "node --check app.js && node --check render.js && node --check utils.js && node --check state.js && node --check firebase.js"
+  },
+  "dependencies": {
+    "firebase": "^10.12.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

@@ -1,9 +1,5 @@
-// ── render.js ──────────────────────────────────────────────────────────────────
-// Reads state, updates DOM. Covers: summary stats, orders list, daily share list.
-
-import { orders, currentUser, accountType } from './state.js';
-import { ACCOUNT_TYPE_MAIN_SELLER } from './utils.js';
-import { todayKey, showToast } from './utils.js';
+import { orders, currentUser, accountType, orderFilters } from './state.js';
+import { ACCOUNT_TYPE_MAIN_SELLER, todayKey, showToast, ORDER_STATUS_META, ORDER_STATUSES, normalizeOrder } from './utils.js';
 import { updateOrderInFirestore, deleteOrderFromFirestore } from './firebase.js';
 import { updateSaveDayBtn } from './analytics.js';
 
@@ -14,13 +10,11 @@ export function renderAll() {
   updateSaveDayBtn();
 }
 
-// ── Summary stats ──────────────────────────────────────────────────────────────
-
 function renderSummary() {
-  const tod       = todayOrders();
-  const rev       = tod.reduce((s, o) => s + o.revenue, 0);
-  const prof      = tod.reduce((s, o) => s + o.profit, 0);
-  const pcs       = tod.reduce((s, o) => s + o.pieces, 0);
+  const tod = todayOrders();
+  const rev = tod.reduce((s, o) => s + o.revenue, 0);
+  const prof = tod.reduce((s, o) => s + o.profit, 0);
+  const pcs = tod.reduce((s, o) => s + o.pieces, 0);
   const unpaidAmt = tod.filter(o => !o.paid).reduce((s, o) => s + o.revenue, 0);
 
   const tally = {};
@@ -28,170 +22,139 @@ function renderSummary() {
     tally[o.flavor1] = (tally[o.flavor1] || 0) + o.pieces;
     if (o.flavor2) tally[o.flavor2] = (tally[o.flavor2] || 0) + (o.tubQty || 1);
   });
-  const best = Object.keys(tally).length
-    ? Object.keys(tally).reduce((a, b) => tally[a] > tally[b] ? a : b)
-    : '—';
+  const best = Object.keys(tally).length ? Object.keys(tally).reduce((a, b) => tally[a] > tally[b] ? a : b) : '—';
 
-  const isSeller = accountType === ACCOUNT_TYPE_MAIN_SELLER;
+  const isMain = accountType === ACCOUNT_TYPE_MAIN_SELLER;
   document.getElementById('sum-revenue').textContent = `₱${rev}`;
-  document.getElementById('sum-profit').textContent  = isSeller ? '—' : `₱${prof}`;
-  document.getElementById('sum-pieces').textContent  = pcs;
-  document.getElementById('sum-best').textContent    = best;
-  document.getElementById('sum-unpaid').textContent  = `₱${unpaidAmt}`;
-  // Show/hide profit stat card
-  document.querySelectorAll('.stat.profit').forEach(el => el.style.display = isSeller ? 'none' : '');
+  document.getElementById('sum-profit').textContent = isMain ? '—' : `₱${prof}`;
+  document.getElementById('sum-pieces').textContent = pcs;
+  document.getElementById('sum-best').textContent = best;
+  document.getElementById('sum-unpaid').textContent = `₱${unpaidAmt}`;
 }
 
-// ── Orders list ────────────────────────────────────────────────────────────────
+function getFilteredOrders() {
+  const filtered = todayOrders().filter(o => {
+    if (orderFilters.status !== 'all' && o.status !== orderFilters.status) return false;
+    if (orderFilters.payment === 'paid' && !o.paid) return false;
+    if (orderFilters.payment === 'unpaid' && o.paid) return false;
+    if (orderFilters.query) {
+      const haystack = `${o.customer || ''} ${o.flavor1 || ''} ${o.flavor2 || ''}`.toLowerCase();
+      if (!haystack.includes(orderFilters.query)) return false;
+    }
+    return true;
+  });
+
+  const sorted = filtered.slice();
+  switch (orderFilters.sortBy) {
+    case 'oldest': sorted.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); break;
+    case 'price_desc': sorted.sort((a, b) => b.revenue - a.revenue); break;
+    case 'price_asc': sorted.sort((a, b) => a.revenue - b.revenue); break;
+    case 'customer_asc': sorted.sort((a, b) => (a.customer || '').localeCompare(b.customer || '')); break;
+    default: sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  }
+  return sorted;
+}
 
 function orderCardHTML(o) {
-  const tubType     = o.tubType || o.pieces;
-  const tubQty      = o.tubQty || 1;
+  const meta = ORDER_STATUS_META[o.status] || ORDER_STATUS_META.pending;
   const flavorLabel = o.mixed ? `${o.flavor1} + ${o.flavor2}` : o.flavor1;
-  const tubLabel    = o.mixed
-    ? `${tubQty}×2pc mixed tub${tubQty > 1 ? 's' : ''}`
-    : `${tubQty}×${tubType}pc tub${tubQty > 1 ? 's' : ''}`;
-  const meta  = `${tubLabel} · ${o.pieces}pc total · ${o.time}`;
-  const ctBadge = o.customerType === 'reseller'
-    ? `<span class="order-ctype reseller-ctype">🔄 Reseller</span>`
-    : `<span class="order-ctype normal-ctype">👤 Normal</span>`;
-  const isSeller = accountType === ACCOUNT_TYPE_MAIN_SELLER;
-  const cHTML = o.customer ? `<div class="order-customer">👤 ${o.customer}</div>` : '';
-  const pm    = o.payMethod || null;
-  const badge = o.paid
-    ? `<span class="paid-badge ${pm}">${pm === 'cash' ? '💵 Cash' : '💙 GCash'}</span>`
-    : `<span class="unpaid-badge">UNPAID</span>`;
+  const tubLabel = `${o.tubQty}×${o.tubType}pc tub${o.tubQty > 1 ? 's' : ''}`;
 
-  const delivered = !!o.delivered;
-  return `<div class="order-item${o.mixed ? ' mixed-item' : ''}${o.paid ? ' paid-item' : ''}${o.delivered ? ' delivered-item' : ''}">
+  return `<div class="order-item status-${o.status}${o.paid ? ' paid-item' : ''}">
     <div class="order-top">
-      <div class="order-dot"></div>
       <div class="order-info">
-        <div class="order-name">${flavorLabel} ${ctBadge}</div>${cHTML}
-        <div class="order-meta">${meta}</div>
+        <div class="order-name">${flavorLabel} <span class="status-chip">${meta.emoji} ${meta.label}</span></div>
+        ${o.customer ? `<div class="order-customer">👤 ${o.customer}</div>` : ''}
+        <div class="order-meta">${tubLabel} · ${o.pieces}pc · ${o.time}</div>
       </div>
-      <div class="order-prices">
-        <div class="order-revenue">₱${o.revenue}</div>
-        ${!isSeller ? `<div class="order-profit">+₱${o.profit}</div>` : ''}
-      </div>
-      <div class="order-top-right">
-        ${delivered ? '<span class="delivered-badge">🚚 Delivered</span>' : ''}
-        <button class="del-btn" onclick="deleteOrder('${o.firestoreId}')">✕</button>
-      </div>
+      <div class="order-prices"><div class="order-revenue">₱${o.revenue}</div>${accountType !== ACCOUNT_TYPE_MAIN_SELLER ? `<div class="order-profit">+₱${o.profit}</div>` : ''}</div>
+      <button class="del-btn" onclick="deleteOrder('${o.firestoreId}')">✕</button>
     </div>
-    <div class="order-bottom">
-      <button class="pay-btn cash ${pm === 'cash' ? 'active-cash' : ''}" onclick="markPayment('${o.firestoreId}','cash','${pm}')">💵 Cash</button>
-      <button class="pay-btn gcash ${pm === 'gcash' ? 'active-gcash' : ''}" onclick="markPayment('${o.firestoreId}','gcash','${pm}')">💙 GCash</button>
-      ${badge}
-    </div>
-    <div class="order-delivery-row">
-      <button class="delivery-btn ${delivered ? 'delivered-active' : ''}" onclick="toggleDelivered('${o.firestoreId}',${delivered})">
-        ${delivered ? '✅ Delivered' : '🚚 Mark as Delivered'}
-      </button>
+    <div class="order-controls-grid">
+      <select class="status-select" onchange="setOrderStatus('${o.firestoreId}', this.value)">
+        ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${ORDER_STATUS_META[s].emoji} ${ORDER_STATUS_META[s].label}</option>`).join('')}
+      </select>
+      <button class="pay-btn ${o.paid ? 'active-cash' : ''}" onclick="togglePaid('${o.firestoreId}', ${o.paid})">${o.paid ? '✅ Paid' : '💸 Mark Paid'}</button>
+      <button class="delivery-btn ${o.status === 'delivered' ? 'delivered-active' : ''}" onclick="setOrderStatus('${o.firestoreId}','delivered')">🚚 Deliver</button>
+      <button class="day-edit-btn" onclick="editOrder('${o.firestoreId}')">✏️ Edit</button>
     </div>
   </div>`;
 }
 
 function renderOrdersList() {
-  const tod  = todayOrders().slice().reverse();
-  const us   = document.getElementById('unpaid-section');
-  const at   = document.getElementById('all-orders-title');
   const list = document.getElementById('orders-list');
-
-  if (!tod.length) {
-    us.innerHTML   = '';
-    at.textContent = "Today's Orders";
-    list.innerHTML = `<div class="orders-empty"><div class="empty-icon">🍩</div><p>No orders yet today.<br>Add your first one!</p></div>`;
+  const title = document.getElementById('all-orders-title');
+  const data = getFilteredOrders();
+  title.textContent = `Today's Orders (${data.length})`;
+  if (!data.length) {
+    list.innerHTML = '<div class="orders-empty"><div class="empty-icon">🔎</div><p>No matching orders found.</p></div>';
     return;
   }
-
-  const unpaid = tod.filter(o => !o.paid);
-  us.innerHTML = unpaid.length
-    ? `<div class="section-label">⚠️ Unpaid (${unpaid.length})</div>${unpaid.map(orderCardHTML).join('')}`
-    : `<div class="section-label" style="color:var(--green)">✅ All paid for today!</div>`;
-
-  at.textContent = `All Orders (${tod.length})`;
-  list.innerHTML = tod.map(orderCardHTML).join('');
+  list.innerHTML = data.map(orderCardHTML).join('');
 }
-
-// ── Daily share list ───────────────────────────────────────────────────────────
 
 function renderDailyList() {
   const tod = todayOrders();
   const out = document.getElementById('daily-output');
-  if (!tod.length) { out.textContent = 'No orders yet today.'; return; }
+  if (!tod.length) return (out.textContent = 'No orders yet today.');
 
-  const lines   = [];
-  const dateStr = new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' });
-  lines.push(`🍩 CinnaBun Orders — ${dateStr}`, '');
+  const lines = [];
+  lines.push(`🍩 CinnaBun Orders — ${new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}`, '');
+  tod.forEach(o => lines.push(`• ${o.customer || 'Walk-in'}: ${o.mixed ? `${o.flavor1} + ${o.flavor2}` : o.flavor1} (${o.pieces}pc) - ₱${o.revenue} [${ORDER_STATUS_META[o.status].label}]`));
 
-  const byTub = {};
-  tod.forEach(o => {
-    const tt = o.tubType || o.pieces;
-    if (!byTub[tt]) byTub[tt] = { single: {}, mixed: {} };
-    if (o.mixed) {
-      const pair = [o.flavor1, o.flavor2].sort().join(' + ');
-      byTub[tt].mixed[pair] = (byTub[tt].mixed[pair] || 0) + (o.tubQty || 1);
-    } else {
-      byTub[tt].single[o.flavor1] = (byTub[tt].single[o.flavor1] || 0) + (o.tubQty || 1);
-    }
-  });
-
-  Object.keys(byTub).sort((a, b) => parseInt(a) - parseInt(b)).forEach(tt => {
-    lines.push(`${tt}pc tubs:`);
-    Object.keys(byTub[tt].single).forEach(fl => lines.push(`  ${fl} - ${byTub[tt].single[fl]}`));
-    Object.keys(byTub[tt].mixed).forEach(pair => lines.push(`  ${pair} - ${byTub[tt].mixed[pair]}`));
-    lines.push('');
-  });
-
-  const unpaid    = tod.filter(o => !o.paid);
-  const rev       = tod.reduce((s, o) => s + o.revenue, 0);
-  const prof      = tod.reduce((s, o) => s + o.profit, 0);
-  const pcs       = tod.reduce((s, o) => s + o.pieces, 0);
-  const cashAmt   = tod.filter(o => o.payMethod === 'cash').reduce((s, o) => s + o.revenue, 0);
-  const gcashAmt  = tod.filter(o => o.payMethod === 'gcash').reduce((s, o) => s + o.revenue, 0);
-  const unpaidAmt = unpaid.reduce((s, o) => s + o.revenue, 0);
-
-  lines.push(`Total: ${pcs} pcs | Revenue: ₱${rev} | Profit: ₱${prof}`, '', '💳 Payment Breakdown:');
-  if (cashAmt)   lines.push(`  💵 Cash:   ₱${cashAmt}`);
-  if (gcashAmt)  lines.push(`  💙 GCash:  ₱${gcashAmt}`);
-  if (unpaidAmt) lines.push(`  ⚠️  Unpaid: ₱${unpaidAmt} (${unpaid.length} order${unpaid.length > 1 ? 's' : ''})`);
-  const unames = unpaid.filter(o => o.customer).map(o => o.customer);
-  if (unames.length) lines.push(`     → ${unames.join(', ')}`);
-
+  const rev = tod.reduce((s, o) => s + o.revenue, 0);
+  const pcs = tod.reduce((s, o) => s + o.pieces, 0);
+  lines.push('', `Total: ${pcs} pcs | Revenue: ₱${rev}`);
   out.textContent = lines.join('\n');
 }
 
-// ── Exported helpers ───────────────────────────────────────────────────────────
-
 export function todayOrders() {
-  return orders.filter(o => o.date === todayKey());
+  return orders.map(normalizeOrder).filter(o => o.date === todayKey());
 }
 
-// Inline onclick handlers — need window scope, use currentUser for uid
-
-window.markPayment = async function(fid, method, cur) {
+window.setOrderStatus = async function (fid, status) {
   const uid = currentUser?.uid;
   if (!uid) return;
-  const nm = cur === method ? null : method;
-  try {
-    await updateOrderInFirestore(uid, fid, { paid: nm !== null, payMethod: nm });
-    showToast(nm ? `Marked as ${nm} ✓` : 'Marked as unpaid');
-  } catch { showToast('Error updating payment'); }
+  if (!ORDER_STATUSES.includes(status)) return showToast('Invalid status');
+  try { await updateOrderInFirestore(uid, fid, { status, delivered: status === 'delivered' }); showToast('Status updated'); }
+  catch { showToast('Status update failed'); }
 };
 
-window.toggleDelivered = async function(fid, cur) {
+window.togglePaid = async function (fid, currentPaid) {
   const uid = currentUser?.uid;
   if (!uid) return;
-  try {
-    await updateOrderInFirestore(uid, fid, { delivered: !cur });
-    showToast(!cur ? '🚚 Marked as delivered!' : 'Delivery status cleared');
-  } catch { showToast('Error'); }
+  const nextPaid = !currentPaid;
+  try { await updateOrderInFirestore(uid, fid, { paid: nextPaid, payMethod: nextPaid ? 'cash' : null }); showToast(nextPaid ? 'Marked paid' : 'Marked unpaid'); }
+  catch { showToast('Payment update failed'); }
 };
 
-window.deleteOrder = async function(fid) {
+window.editOrder = async function (fid) {
   const uid = currentUser?.uid;
   if (!uid) return;
+  const target = orders.find(o => o.firestoreId === fid);
+  if (!target) return;
+
+  const customer = prompt('Customer name:', target.customer || '') ?? target.customer;
+  const tubQty = Number(prompt('Tub quantity:', String(target.tubQty || 1)));
+  if (!Number.isFinite(tubQty) || tubQty < 1) return showToast('Quantity must be at least 1');
+
+  const updated = normalizeOrder({ ...target, customer: customer.trim(), tubQty, pieces: target.tubType * tubQty, revenue: (target.revenue / (target.tubQty || 1)) * tubQty, profit: (target.profit / (target.tubQty || 1)) * tubQty });
+  try {
+    await updateOrderInFirestore(uid, fid, {
+      customer: updated.customer,
+      tubQty: updated.tubQty,
+      pieces: updated.pieces,
+      revenue: Math.round(updated.revenue),
+      profit: Math.round(updated.profit),
+    });
+    showToast('Order updated');
+  } catch { showToast('Update failed'); }
+};
+
+window.deleteOrder = async function (fid) {
+  const uid = currentUser?.uid;
+  if (!uid) return;
+  if (!confirm('Delete this order?')) return;
   try { await deleteOrderFromFirestore(uid, fid); showToast('Order removed'); }
-  catch { showToast('Error'); }
+  catch { showToast('Delete failed'); }
 };
