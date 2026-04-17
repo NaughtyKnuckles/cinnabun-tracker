@@ -9,7 +9,7 @@
     "check": "node --check app.js && node --check render.js && node --check utils.js && node --check state.js && node --check firebase.js"
   },
   "dependencies": {
-    "firebase": "^10.12.0"
+    "firebase": "^12.12.0"
   },
   "devDependencies": {
     "serve": "^14.2.4"
